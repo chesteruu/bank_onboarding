@@ -24,7 +24,9 @@ def create_app() -> FastAPI:
     app.include_router(admin_router)
 
     public_dir = Path(settings.public_dir)
-    if public_dir.exists():
+    if not public_dir.is_dir():
+        public_dir = Path(__file__).resolve().parent / "public"
+    if public_dir.is_dir():
         app.mount("/static", StaticFiles(directory=str(public_dir)), name="static")
 
     return app
