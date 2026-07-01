@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from onboarding.config import get_settings
@@ -28,6 +29,10 @@ def create_app() -> FastAPI:
         public_dir = Path(__file__).resolve().parent / "public"
     if public_dir.is_dir():
         app.mount("/static", StaticFiles(directory=str(public_dir)), name="static")
+
+        @app.get("/styles.css", include_in_schema=False)
+        async def stylesheet() -> FileResponse:
+            return FileResponse(public_dir / "styles.css", media_type="text/css")
 
     return app
 
