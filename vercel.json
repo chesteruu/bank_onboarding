@@ -13,5 +13,8 @@
     "main.py": {
       "maxDuration": 30
     }
+  },
+  "env": {
+    "PYTHONPATH": "src"
   }
 }

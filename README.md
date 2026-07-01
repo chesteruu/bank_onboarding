@@ -157,12 +157,35 @@ Happy-path SE private: `199001011234`, `Anna Andersson`.
 
 ## Deploy to Vercel
 
-1. Provision Neon Postgres (Vercel Marketplace).
-2. Set `DATABASE_URL` (pooled, `+asyncpg` prefix).
-3. Run `alembic upgrade head` against Neon before deploy.
-4. Deploy — `vercel.json` routes to `main.py`.
+### One-time setup
 
-Migrations run outside cold starts. Outbox events flush on HTTP poll/SSE (no background worker on Vercel).
+1. **Create a Vercel project** (link this repo or run `vercel link` locally).
+2. **Provision Neon Postgres** via the Vercel Marketplace and set `DATABASE_URL` (pooled URL with `+asyncpg`).
+3. **Run migrations** against Neon before the first deploy: `alembic upgrade head`.
+4. **Add GitHub Actions secrets** (repo → Settings → Secrets and variables → Actions):
+
+   | Secret | Where to find it |
+   |--------|------------------|
+   | `VERCEL_TOKEN` | [Vercel account tokens](https://vercel.com/account/tokens) |
+   | `VERCEL_ORG_ID` | `.vercel/project.json` → `orgId` (after `vercel link`) |
+   | `VERCEL_PROJECT_ID` | `.vercel/project.json` → `projectId` |
+
+5. **Optional:** create GitHub environments `production` and `preview` for deployment protection rules.
+
+### CI/CD (GitHub Actions)
+
+On every push / PR to `main`, [`.github/workflows/ci.yml`](.github/workflows/ci.yml) runs:
+
+1. **Lint & test** — ruff, mypy, pytest (excluding Postgres integration tests)
+2. **Deploy** — Vercel prebuilt deploy (production on `main` push, preview on PRs)
+
+Push to `main` after secrets are configured:
+
+```bash
+git push origin main
+```
+
+`vercel.json` routes all traffic to `main.py` with `PYTHONPATH=src`. Migrations run outside cold starts. Outbox events flush on HTTP poll/SSE (no background worker on Vercel).
 
 ## Adding a new market
 
