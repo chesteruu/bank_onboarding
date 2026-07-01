@@ -20,6 +20,14 @@ from onboarding.integrations.mocks.identity import MockAddressClient, MockIdenti
 from onboarding.integrations.mocks.kyb import MockKybClient
 from onboarding.integrations.mocks.registry import MockRegistryClient
 from onboarding.integrations.mocks.sanctions import MockSanctionsClient
+from onboarding.integrations.resilience import (
+    AllProvidersFailedError,
+    IntegrationCallPolicy,
+    IntegrationCallReport,
+    ProviderSpec,
+    ResilientIntegrationCaller,
+)
+from onboarding.integrations.resilience import fallbacks as degraded
 
 INTEGRATION_MAP: dict[str, IntegrationCheckType] = {
     "bankid_identity": IntegrationCheckType.IDENTITY,
@@ -42,7 +50,13 @@ INTEGRATION_MAP: dict[str, IntegrationCheckType] = {
 
 
 class MockIntegrationGateway:
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        *,
+        caller: ResilientIntegrationCaller | None = None,
+        policy: IntegrationCallPolicy | None = None,
+    ) -> None:
+        self._caller = caller or ResilientIntegrationCaller(default_policy=policy)
         self._identity = MockIdentityClient()
         self._address = MockAddressClient()
         self._registry = MockRegistryClient()
@@ -83,37 +97,48 @@ class MockIntegrationGateway:
                 full_name=answers.get("full_name", ""),
                 date_of_birth=answers.get("date_of_birth"),
             )
-            identity_resp = await self._identity.verify(identity_req)
-            payload = identity_req.model_dump()
-            return IntegrationResult(
+            return await self._invoke(
                 application_id=application_id,
                 check_type=check_type,
-                provider=identity_resp.provider,
-                request_payload_hash=hash_payload(payload),
-                response=identity_resp.model_dump(mode="json"),
-                outcome=identity_resp.outcome,
+                request_payload=identity_req.model_dump(),
+                providers=[
+                    ProviderSpec(
+                        f"mock-identity-{application.country.value.lower()}",
+                        lambda: self._identity.verify(identity_req),
+                    ),
+                    ProviderSpec(
+                        f"fallback-identity-{application.country.value.lower()}",
+                        lambda: degraded.degraded_identity(identity_req),
+                    ),
+                ],
                 ran_at=now,
             )
 
-        elif integration_key == "address_lookup":
+        if integration_key == "address_lookup":
             address_req = AddressCheckRequest(
                 country=application.country,
                 address_line=answers.get("address_line", ""),
                 city=answers.get("city", ""),
                 postal_code=answers.get("postal_code", ""),
             )
-            address_resp = await self._address.verify(address_req)
-            return IntegrationResult(
+            return await self._invoke(
                 application_id=application_id,
                 check_type=check_type,
-                provider=address_resp.provider,
-                request_payload_hash=hash_payload(address_req.model_dump()),
-                response=address_resp.model_dump(mode="json"),
-                outcome=address_resp.outcome,
+                request_payload=address_req.model_dump(),
+                providers=[
+                    ProviderSpec(
+                        f"mock-address-{application.country.value.lower()}",
+                        lambda: self._address.verify(address_req),
+                    ),
+                    ProviderSpec(
+                        f"fallback-address-{application.country.value.lower()}",
+                        lambda: degraded.degraded_address(address_req),
+                    ),
+                ],
                 ran_at=now,
             )
 
-        elif integration_key in (
+        if integration_key in (
             "bolagsverket_registry",
             "registro_mercantil",
             "ceidg_krs_registry",
@@ -123,18 +148,22 @@ class MockIntegrationGateway:
                 company_number=answers.get("company_number", ""),
                 company_name=answers.get("company_name", ""),
             )
-            registry_resp = await self._registry.lookup(registry_req)
-            return IntegrationResult(
+            provider_name = integration_key.replace("_registry", "").replace("_", "-")
+            return await self._invoke(
                 application_id=application_id,
                 check_type=check_type,
-                provider=registry_resp.provider,
-                request_payload_hash=hash_payload(registry_req.model_dump()),
-                response=registry_resp.model_dump(mode="json"),
-                outcome=registry_resp.outcome,
+                request_payload=registry_req.model_dump(),
+                providers=[
+                    ProviderSpec(provider_name, lambda: self._registry.lookup(registry_req)),
+                    ProviderSpec(
+                        f"fallback-{provider_name}",
+                        lambda: degraded.degraded_registry(registry_req),
+                    ),
+                ],
                 ran_at=now,
             )
 
-        elif integration_key == "signatory_check":
+        if integration_key == "signatory_check":
             return IntegrationResult(
                 application_id=application_id,
                 check_type=IntegrationCheckType.SIGNATORY,
@@ -145,7 +174,7 @@ class MockIntegrationGateway:
                 ran_at=now,
             )
 
-        elif integration_key == "ubo_kyc":
+        if integration_key == "ubo_kyc":
             ubo_count = int(answers.get("ubo_count", 0))
             outcome = CheckOutcome.VERIFIED if ubo_count > 0 else CheckOutcome.MANUAL_REVIEW
             return IntegrationResult(
@@ -158,25 +187,31 @@ class MockIntegrationGateway:
                 ran_at=now,
             )
 
-        elif integration_key == "sanctions_screen":
+        if integration_key == "sanctions_screen":
             name = (
                 answers.get("full_name")
                 or answers.get("company_name")
                 or answers.get("signatory_name", "")
             )
             sanctions_req = SanctionsCheckRequest(country=application.country, name=name)
-            sanctions_resp = await self._sanctions.screen(sanctions_req)
-            return IntegrationResult(
+            return await self._invoke(
                 application_id=application_id,
                 check_type=check_type,
-                provider=sanctions_resp.provider,
-                request_payload_hash=hash_payload(sanctions_req.model_dump()),
-                response=sanctions_resp.model_dump(mode="json"),
-                outcome=sanctions_resp.outcome,
+                request_payload=sanctions_req.model_dump(),
+                providers=[
+                    ProviderSpec(
+                        f"mock-sanctions-{application.country.value.lower()}",
+                        lambda: self._sanctions.screen(sanctions_req),
+                    ),
+                    ProviderSpec(
+                        f"fallback-sanctions-{application.country.value.lower()}",
+                        lambda: degraded.degraded_sanctions(sanctions_req),
+                    ),
+                ],
                 ran_at=now,
             )
 
-        elif integration_key in ("credit_bureau", "bik_credit", "affordability"):
+        if integration_key in ("credit_bureau", "bik_credit", "affordability"):
             credit_req = CreditCheckRequest(
                 country=application.country,
                 national_id=answers.get("national_id")
@@ -186,60 +221,139 @@ class MockIntegrationGateway:
                 monthly_income=_float_or_none(answers.get("monthly_income")),
                 monthly_expenses=_float_or_none(answers.get("monthly_expenses")),
             )
-            credit_resp = await self._credit.check(credit_req)
             ctype = (
                 IntegrationCheckType.AFFORDABILITY
                 if integration_key == "affordability"
                 else IntegrationCheckType.CREDIT
             )
-            return IntegrationResult(
+            return await self._invoke(
                 application_id=application_id,
                 check_type=ctype,
-                provider=credit_resp.provider,
-                request_payload_hash=hash_payload(credit_req.model_dump()),
-                response=credit_resp.model_dump(mode="json"),
-                outcome=credit_resp.outcome,
+                request_payload=credit_req.model_dump(),
+                providers=[
+                    ProviderSpec(
+                        f"mock-credit-{application.country.value.lower()}",
+                        lambda: self._credit.check(credit_req),
+                    ),
+                    ProviderSpec(
+                        f"fallback-credit-{application.country.value.lower()}",
+                        lambda: degraded.degraded_credit(credit_req),
+                    ),
+                ],
                 ran_at=now,
             )
 
-        elif integration_key == "kyb_check":
+        if integration_key == "kyb_check":
             kyb_req = KybCheckRequest(
                 country=application.country,
                 company_number=answers.get("company_number", ""),
                 ubo_count=int(answers.get("ubo_count", 0)),
             )
-            kyb_resp = await self._kyb.verify(kyb_req)
-            return IntegrationResult(
+            return await self._invoke(
                 application_id=application_id,
                 check_type=check_type,
-                provider=kyb_resp.provider,
-                request_payload_hash=hash_payload(kyb_req.model_dump()),
-                response=kyb_resp.model_dump(mode="json"),
-                outcome=kyb_resp.outcome,
+                request_payload=kyb_req.model_dump(),
+                providers=[
+                    ProviderSpec(
+                        f"mock-kyb-{application.country.value.lower()}",
+                        lambda: self._kyb.verify(kyb_req),
+                    ),
+                    ProviderSpec(
+                        f"fallback-kyb-{application.country.value.lower()}",
+                        lambda: degraded.degraded_kyb(kyb_req),
+                    ),
+                ],
                 ran_at=now,
             )
 
-        elif integration_key in ("iban_verify", "bank_verify"):
+        if integration_key in ("iban_verify", "bank_verify"):
             bank_req = BankAccountCheckRequest(
                 country=application.country,
                 iban=answers.get("iban", ""),
                 account_holder=answers.get("account_holder") or answers.get("company_name", ""),
             )
-            bank_resp = await self._bank.verify(bank_req)
-            outcome = bank_resp.outcome
-            if outcome == CheckOutcome.TIMEOUT:
-                outcome = CheckOutcome.MANUAL_REVIEW
-            return IntegrationResult(
+            return await self._invoke(
                 application_id=application_id,
                 check_type=check_type,
-                provider=bank_resp.provider,
-                request_payload_hash=hash_payload(bank_req.model_dump()),
-                response=bank_resp.model_dump(mode="json"),
-                outcome=outcome,
+                request_payload=bank_req.model_dump(),
+                providers=[
+                    ProviderSpec(
+                        f"mock-bank-{application.country.value.lower()}",
+                        lambda: self._bank.verify(bank_req),
+                    ),
+                    ProviderSpec(
+                        f"fallback-bank-{application.country.value.lower()}",
+                        lambda: degraded.degraded_bank(bank_req),
+                    ),
+                ],
                 ran_at=now,
             )
 
         return None
+
+    async def _invoke(
+        self,
+        *,
+        application_id: UUID,
+        check_type: IntegrationCheckType,
+        request_payload: dict[str, Any],
+        providers: list[ProviderSpec[Any]],
+        ran_at: datetime,
+    ) -> IntegrationResult:
+        try:
+            report = await self._caller.execute(providers)
+        except AllProvidersFailedError as exc:
+            outcome = CheckOutcome.TIMEOUT if exc.last_was_timeout else CheckOutcome.UNREACHABLE
+            return IntegrationResult(
+                application_id=application_id,
+                check_type=check_type,
+                provider="unavailable",
+                request_payload_hash=hash_payload(request_payload),
+                response={
+                    "error": str(exc),
+                    "call_metadata": _call_metadata_from_attempts(exc.attempts),
+                },
+                outcome=outcome,
+                ran_at=ran_at,
+            )
+
+        response = _enrich_response(report)
+        return IntegrationResult(
+            application_id=application_id,
+            check_type=check_type,
+            provider=_response_provider(response, report),
+            request_payload_hash=hash_payload(request_payload),
+            response=response,
+            outcome=CheckOutcome(response["outcome"]),
+            ran_at=ran_at,
+        )
+
+
+def _enrich_response(report: IntegrationCallReport[Any]) -> dict[str, Any]:
+    payload: dict[str, Any] = report.value.model_dump(mode="json")
+    details = dict(payload.get("details") or {})
+    details.update(report.call_metadata())
+    payload["details"] = details
+    return payload
+
+
+def _response_provider(response: dict[str, Any], report: IntegrationCallReport[Any]) -> str:
+    return str(response.get("provider") or report.provider)
+
+
+def _call_metadata_from_attempts(attempts: list[Any]) -> dict[str, Any]:
+    return {
+        "attempts": [
+            {
+                "provider": a.provider,
+                "attempt": a.attempt,
+                "status": a.status,
+                "latency_ms": round(a.latency_ms, 2),
+                "error": a.error,
+            }
+            for a in attempts
+        ],
+    }
 
 
 def _float_or_none(value: Any) -> float | None:

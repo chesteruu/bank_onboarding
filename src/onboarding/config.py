@@ -36,6 +36,11 @@ class Settings(BaseSettings):
     device_cookie_name: str = "onboarding_device_id"
     device_cookie_max_age_days: int = 90
     event_driven_enabled: bool = True
+    integration_timeout_seconds: float = 5.0
+    integration_max_attempts: int = 3
+    integration_retry_backoff_seconds: float = 0.25
+    integration_retry_backoff_multiplier: float = 2.0
+    integration_max_backoff_seconds: float = 2.0
 
     @property
     def available_flows(self) -> dict[str, list[str]]:

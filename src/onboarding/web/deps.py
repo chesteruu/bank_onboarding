@@ -19,6 +19,7 @@ from onboarding.events.router import TraceTableRouter
 from onboarding.flow.engine import FlowEngine
 from onboarding.flow.provider import YamlFlowDefinitionProvider
 from onboarding.integrations.gateway import MockIntegrationGateway
+from onboarding.integrations.resilience import IntegrationCallPolicy, ResilientIntegrationCaller
 from onboarding.persistence.database import get_db_session
 from onboarding.persistence.repository import PostgresApplicationRepository
 from onboarding.persistence.segment_repository import PostgresSegmentRepository
@@ -50,7 +51,17 @@ def get_flow_engine(
 
 
 def get_integration_gateway() -> MockIntegrationGateway:
-    return MockIntegrationGateway()
+    settings = get_settings()
+    policy = IntegrationCallPolicy(
+        timeout_seconds=settings.integration_timeout_seconds,
+        max_attempts=settings.integration_max_attempts,
+        retry_backoff_seconds=settings.integration_retry_backoff_seconds,
+        retry_backoff_multiplier=settings.integration_retry_backoff_multiplier,
+        max_backoff_seconds=settings.integration_max_backoff_seconds,
+    )
+    return MockIntegrationGateway(
+        caller=ResilientIntegrationCaller(default_policy=policy),
+    )
 
 
 def get_decision_engine() -> RulesDecisionEngine:

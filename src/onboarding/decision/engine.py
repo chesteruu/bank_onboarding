@@ -21,6 +21,7 @@ REVIEW_OUTCOMES = {
     CheckOutcome.UNKNOWN_REPRESENTATIVE,
     CheckOutcome.MISSING_UBO,
     CheckOutcome.UNREACHABLE,
+    CheckOutcome.TIMEOUT,
 }
 
 
