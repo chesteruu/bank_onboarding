@@ -21,6 +21,7 @@ PROJECT_ROOT = _resolve_project_root()
 FLOWS_DIR = PROJECT_ROOT / "flows"
 TEMPLATES_DIR = PROJECT_ROOT / "templates"
 PUBLIC_DIR = PROJECT_ROOT / "public"
+I18N_DIR = PROJECT_ROOT / "i18n"
 
 
 class Settings(BaseSettings):
@@ -31,13 +32,16 @@ class Settings(BaseSettings):
     flows_dir: Path = FLOWS_DIR
     templates_dir: Path = TEMPLATES_DIR
     public_dir: Path = PUBLIC_DIR
-    available_flows: dict[str, list[str]] = {
-        "private": ["SE", "ES", "PL"],
-        "business": ["SE", "ES", "PL"],
-    }
+    i18n_dir: Path = I18N_DIR
     device_cookie_name: str = "onboarding_device_id"
     device_cookie_max_age_days: int = 90
     event_driven_enabled: bool = True
+
+    @property
+    def available_flows(self) -> dict[str, list[str]]:
+        from onboarding.i18n.provider import get_locale_provider
+
+        return get_locale_provider().available_flows()
 
     @property
     def sync_database_url(self) -> str:

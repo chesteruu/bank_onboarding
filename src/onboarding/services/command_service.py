@@ -17,6 +17,7 @@ from onboarding.events.outbox.publisher import OutboxPublisher
 from onboarding.interfaces.flow import IFlowEngine
 from onboarding.interfaces.persistence import IApplicationRepository
 from onboarding.interfaces.resume import IResumeTokenService
+from onboarding.i18n.provider import get_locale_provider
 
 
 def _extract_identifier_hash(answers: dict[str, Any]) -> str | None:
@@ -45,7 +46,7 @@ class OnboardingCommandService:
         self._flow = flow_engine
         self._publisher = publisher
         self._resume_tokens = resume_tokens
-        self._available_flows = available_flows or {"private": ["SE", "ES", "PL"], "business": ["SE", "ES", "PL"]}
+        self._available_flows = available_flows or get_locale_provider().available_flows()
         self._legacy_abandon = legacy_abandon
 
     def allowed_countries(self, account_type: str) -> list[str]:

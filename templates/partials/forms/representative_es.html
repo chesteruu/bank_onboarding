@@ -1,9 +1,9 @@
-<label>Full name
+<label>{{ t('forms.full_name') }}
   <input name="full_name" value="{{ existing_answers.get('full_name', '') }}" required>
 </label>
-<label>DNI / NIE
+<label>{{ t('forms.dni', default='DNI / NIE') }}
   <input name="dni" value="{{ existing_answers.get('dni', '') }}" required>
 </label>
-<label>Role
+<label>{{ t('forms.role') }}
   <input name="role" value="{{ existing_answers.get('role', '') }}" required>
 </label>

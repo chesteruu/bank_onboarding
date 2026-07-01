@@ -1,9 +1,9 @@
-<label>PESEL
+<label>{{ t('forms.pesel', default='PESEL') }}
   <input name="pesel" value="{{ existing_answers.get('pesel', existing_answers.get('national_id', '')) }}" required maxlength="11">
 </label>
-<label>Full name
+<label>{{ t('forms.full_name') }}
   <input name="full_name" value="{{ existing_answers.get('full_name', '') }}" required>
 </label>
-<label>Date of birth
+<label>{{ t('forms.date_of_birth') }}
   <input name="date_of_birth" type="date" value="{{ existing_answers.get('date_of_birth', '') }}" required>
 </label>

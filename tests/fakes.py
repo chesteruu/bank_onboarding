@@ -3,6 +3,7 @@ from typing import Any
 from uuid import UUID, uuid4
 
 from onboarding.domain.enums import ApplicationStatus, CheckOutcome, IntegrationCheckType
+from onboarding.i18n.provider import get_locale_provider
 from onboarding.domain.events.envelope import EventEnvelope
 from onboarding.domain.events.segment import FlowSegment
 from onboarding.domain.models import (
@@ -347,7 +348,7 @@ def build_event_facade(
             "decision": decision,
         },
     )
-    flows = available_flows or {"private": ["SE", "ES", "PL"], "business": ["SE", "ES", "PL"]}
+    flows = available_flows or get_locale_provider().available_flows()
     command = OnboardingCommandService(
         repo, engine, publisher, resume, flows, legacy_abandon=abandon
     )

@@ -1,33 +1,42 @@
 {% extends "base.html" %}
-{% block title %}Processing — Ikano{% endblock %}
+{% block title %}{{ t('processing.title') }} — Ikano{% endblock %}
 {% block content %}
 <section class="card">
-  <h2>Running checks</h2>
-  <p class="meta">Request: {{ application.request_id }}</p>
+  <h2>{{ t('processing.title') }}</h2>
+  <p class="meta">{{ t('step.flow_meta', flow_id=application.country.value ~ '_' ~ application.account_type.value, request_id=application.request_id) }}</p>
   <div class="progress-bar">
     <div class="progress-fill" id="progress-fill" style="width: {{ status.main_progress.percent }}%"></div>
   </div>
-  <p class="progress-label" id="progress-label">
-    Step {{ status.main_progress.current_step }} of {{ status.main_progress.total_steps }}:
-    {{ status.main_progress.current_step_title }}
-  </p>
+  <p class="progress-label" id="progress-label"></p>
   <p id="segment-detail" class="meta"></p>
-  <p id="status-message">Please wait while we complete verification…</p>
+  <p id="status-message">{{ t('processing.wait') }}</p>
 </section>
 <script>
 (function() {
   const appId = "{{ application.id }}";
+  const stepOfTpl = {{ js_step_of | tojson }};
+  const segmentTpl = {{ js_segment | tojson }};
   const source = new EventSource(`/onboarding/${appId}/events`);
+  function renderProgress(prog) {
+    document.getElementById("progress-fill").style.width = (prog.percent || 0) + "%";
+    document.getElementById("progress-label").textContent = stepOfTpl
+      .replace("{current}", prog.current_step || "")
+      .replace("{total}", prog.total_steps || "")
+      .replace("{title}", prog.current_step_title || "");
+    if (prog.active_segment) {
+      const seg = prog.active_segment;
+      document.getElementById("segment-detail").textContent = segmentTpl
+        .replace("{orchestrator}", seg.orchestrator_id || "")
+        .replace("{step}", seg.internal_step_title || seg.internal_step_key || "")
+        .replace("{percent}", seg.percent || 0);
+    } else {
+      document.getElementById("segment-detail").textContent = "";
+    }
+  }
+  renderProgress({{ status.main_progress | tojson }});
   source.onmessage = function(event) {
     const status = JSON.parse(event.data);
-    const prog = status.main_progress || {};
-    document.getElementById("progress-fill").style.width = (prog.percent || 0) + "%";
-    document.getElementById("progress-label").textContent =
-      `Step ${prog.current_step} of ${prog.total_steps}: ${prog.current_step_title}`;
-    if (prog.active_segment) {
-      document.getElementById("segment-detail").textContent =
-        `${prog.active_segment.orchestrator_id}: ${prog.active_segment.internal_step_title || prog.active_segment.internal_step_key} (${prog.active_segment.percent}%)`;
-    }
+    renderProgress(status.main_progress || {});
     if (status.ready && status.current_step_key) {
       source.close();
       window.location.href = `/onboarding/${appId}/step/${status.current_step_key}`;

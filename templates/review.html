@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Review — Ikano{% endblock %}
+{% block title %}{{ t('review.title') }} — Ikano{% endblock %}
 {% block content %}
 {% include "partials/progress.html" %}
 {% include "partials/resume_link.html" %}
 
 <section class="card">
-  <h2>Review and submit</h2>
+  <h2>{{ t('review.title') }}</h2>
 
   {% if errors %}
   <div class="alert alert-error">
@@ -13,11 +13,11 @@
   </div>
   {% endif %}
 
-  <h3>Your answers</h3>
+  <h3>{{ t('review.your_answers') }}</h3>
   <div class="review-section">
     {% for sub in review_data.submissions %}
     <div class="review-block">
-      <h4>{{ sub.step_key }}</h4>
+      <h4>{{ t('steps.' ~ sub.step_key, default=sub.step_key) }}</h4>
       <dl>
         {% for k, v in sub.answers.items() %}
         <dt>{{ k }}</dt><dd>{{ v }}</dd>
@@ -27,17 +27,17 @@
     {% endfor %}
   </div>
 
-  <h3>Integration checks</h3>
+  <h3>{{ t('review.integration_checks') }}</h3>
   <ul class="check-list">
     {% for r in review_data.integrations %}
     <li class="outcome-{{ r.outcome.value }}">
       <strong>{{ r.check_type.value }}</strong>: {{ r.outcome.value }}
-      <span class="provider">via {{ r.provider }}</span>
+      <span class="provider">{{ t('review.via') }} {{ r.provider }}</span>
     </li>
     {% endfor %}
   </ul>
 
-  <h3>Audit trail</h3>
+  <h3>{{ t('review.audit_trail') }}</h3>
   <ul class="audit-list">
     {% for e in review_data.audit_events %}
     <li>{{ e.created_at }} — {{ e.event_type }} ({{ e.actor }})</li>
@@ -47,9 +47,9 @@
   <form method="post">
     <label class="checkbox">
       <input type="checkbox" name="confirm" required>
-      I confirm the information provided is accurate
+      {{ t('review.confirm') }}
     </label>
-    <button type="submit" class="btn-primary">Submit application</button>
+    <button type="submit" class="btn-primary">{{ t('common.submit') }}</button>
   </form>
 </section>
 {% endblock %}

@@ -22,7 +22,8 @@ Event-driven, interface-first FastAPI onboarding for **3 countries × 2 account 
 
 - **Two-level flows** — shell YAML defines step order; component YAML owns integrations and internal progress
 - **Segment progress** — `flow_segments` table + `/status` + SSE for async UX
-- **Account-type-first landing** with configurable country allow-list
+- **Account-type-first landing** with configurable country allow-list via `i18n/markets.yaml`
+- **Config-based i18n** — per-country locale and translation bundles under `i18n/bundles/`
 - **Device cookie + resume tokens** (24h TTL, single-use)
 - **Duplicate-draft detection** on identity identifiers
 - **Trace tables** — flow, integration, and decision audit projections
@@ -89,7 +90,7 @@ Other settings live in `src/onboarding/config.py` (`Settings`):
 | Setting | Default | Purpose |
 |---------|---------|---------|
 | `event_driven_enabled` | `true` | Event bus + outbox path (recommended) |
-| `available_flows` | SE/ES/PL per type | Countries shown on the landing page |
+| `available_flows` | from `i18n/markets.yaml` | Enabled countries per account type |
 | `device_cookie_name` | `onboarding_device_id` | Resume cookie |
 | `device_cookie_max_age_days` | `90` | Cookie TTL |
 
@@ -151,7 +152,7 @@ See **[docs/FLOWS_GUIDE.md](docs/FLOWS_GUIDE.md)** for the full checklist. Summa
 3. Add or reuse component YAML under `flows/components/{orchestrator}/`
 4. Register form schema + template (if new fields)
 5. Add decision rules `src/onboarding/decision/rules/{flow_id}.yaml`
-6. Enable country in `Settings.available_flows`
+6. Enable country in `i18n/markets.yaml` and add `i18n/bundles/{CC}.yaml`
 7. Add tests
 
 When using an LLM, point it at **[.cursor/skills/onboarding-flows/SKILL.md](.cursor/skills/onboarding-flows/SKILL.md)** first.

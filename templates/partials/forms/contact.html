@@ -1,24 +1,24 @@
-<label>Email
+<label>{{ t('forms.email') }}
   <input name="email" type="email" value="{{ existing_answers.get('email', '') }}" required>
 </label>
-<label>Phone
+<label>{{ t('forms.phone') }}
   <input name="phone" value="{{ existing_answers.get('phone', '') }}" required>
 </label>
-<label>Address
+<label>{{ t('forms.address') }}
   <input name="address_line" value="{{ existing_answers.get('address_line', '') }}" required>
 </label>
-<label>City
+<label>{{ t('forms.city') }}
   <input name="city" value="{{ existing_answers.get('city', '') }}" required>
 </label>
-<label>Postal code
+<label>{{ t('forms.postal_code') }}
   <input name="postal_code" value="{{ existing_answers.get('postal_code', '') }}" required>
 </label>
 {% if step.form_schema == "ContactStepES" %}
-<label>Province
+<label>{{ t('forms.province') }}
   <input name="province" value="{{ existing_answers.get('province', '') }}" required>
 </label>
 {% elif step.form_schema == "ContactStepPL" %}
-<label>Voivodeship
+<label>{{ t('forms.voivodeship') }}
   <input name="voivodeship" value="{{ existing_answers.get('voivodeship', '') }}" required>
 </label>
 {% endif %}

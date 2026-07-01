@@ -1,18 +1,18 @@
 {% extends "base.html" %}
-{% block title %}Select country — Ikano{% endblock %}
+{% block title %}{{ t('select_country.title') }} — Ikano{% endblock %}
 {% block content %}
 <section class="card">
-  <h2>Select your country</h2>
-  <p>Choose the country where you want to open your {{ account_type }} account.</p>
+  <h2>{{ t('select_country.title') }}</h2>
+  <p>{{ t('select_country.description', account_type=account_type_label) }}</p>
   <div class="flow-selector">
-    {% for country in countries %}
+    {% for code, name in country_choices %}
     <form method="post" action="/onboarding/start">
       <input type="hidden" name="account_type" value="{{ account_type }}">
-      <input type="hidden" name="country" value="{{ country }}">
-      <button type="submit" class="flow-btn">{{ country }}</button>
+      <input type="hidden" name="country" value="{{ code }}">
+      <button type="submit" class="flow-btn">{{ name }}</button>
     </form>
     {% endfor %}
   </div>
-  <p><a href="/">← Back</a></p>
+  <p><a href="/">← {{ t('common.back') }}</a></p>
 </section>
 {% endblock %}

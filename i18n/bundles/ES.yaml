@@ -1,0 +1,145 @@
+locale: es
+
+market:
+  display_name: España
+
+account_types:
+  private: Cuenta personal
+  business: Cuenta empresarial
+
+common:
+  continue: Continuar
+  back: Volver
+  select: Seleccionar…
+  submit: Enviar solicitud
+  start_new: Iniciar nueva solicitud
+
+landing:
+  title: Abrir una cuenta
+  account_question: "¿Qué tipo de cuenta necesitas?"
+  resume_invalid: El enlace de reanudación no es válido o ha caducado. Inicia una nueva solicitud.
+  demo_title: Demo — identificadores especiales
+  demo_0000: "ID terminado en {code} → revisión manual"
+  demo_9999: "ID terminado en {code} → rechazo"
+  demo_pep: "Nombre con {code} → posible coincidencia en sanciones"
+  demo_sanction: "Nombre con {code} → coincidencia confirmada"
+
+select_country:
+  title: Selecciona tu país
+  description: "Elige el país donde quieres abrir tu cuenta {account_type}."
+
+resume:
+  title: Bienvenido de nuevo
+  found: "Encontramos una solicitud iniciada el {date}."
+  resume_btn: Continuar donde lo dejé
+  start_over_btn: Empezar de nuevo
+  country: País
+  account_type: Tipo de cuenta
+  current_step: Paso actual
+  status: Estado
+  link_title: "¿Continuar en otro dispositivo?"
+  link_help: Guarda este enlace (válido 24 horas)
+
+duplicate:
+  title: Borrador existente
+  body: El identificador personal coincide con un borrador que ya tenemos.
+  started: Iniciado
+  resume_existing: Reanudar borrador existente
+  continue_new: Continuar con esta solicitud
+
+progress:
+  step_of: "Paso {current} de {total}: {title}"
+  segment: "{orchestrator}: {step} ({percent}%)"
+
+processing:
+  title: Ejecutando comprobaciones
+  wait: Espera mientras completamos la verificación…
+
+step:
+  flow_meta: "Flujo: {flow_id} · Solicitud: {request_id}"
+  checks_title: Resultados de comprobaciones
+  automated: Se ejecutan comprobaciones automáticas con tus datos. Pulsa continuar.
+
+review:
+  title: Revisar y enviar
+  your_answers: Tus respuestas
+  integration_checks: Comprobaciones de integración
+  audit_trail: Registro de auditoría
+  confirm: Confirmo que la información es correcta
+  via: vía
+
+result:
+  title: Resultado de la solicitud
+  application_status: "Solicitud {status}"
+  decision: "Decisión: {outcome}"
+  request_id: "ID de solicitud: {request_id}"
+
+decisions:
+  approved: Aprobada
+  manual_review: Revisión manual
+  rejected: Rechazada
+  draft: Borrador
+  submitted: Enviada
+  processing: En proceso
+  abandoned: Abandonada
+
+steps:
+  identity: Verificar identidad
+  contact: Datos de contacto
+  consent: Consentimiento y cumplimiento
+  financial: Empleo y solvencia
+  credit_decision: Evaluación crediticia
+  kyb_decision: Evaluación KYB
+  bank_verification: Verificación de cuenta bancaria
+  company: Datos de la empresa
+  signatory: Firmante autorizado
+  representative: Representante legal
+  board: Autoridad del consejo
+  ubo: Beneficiarios finales
+  review: Revisar y enviar
+  decision: Decisión
+
+forms:
+  email: Correo electrónico
+  phone: Teléfono
+  address: Dirección
+  city: Ciudad
+  postal_code: Código postal
+  province: Provincia
+  national_id_se: Número personal
+  full_name: Nombre completo
+  date_of_birth: Fecha de nacimiento
+  monthly_income: Ingresos mensuales
+  monthly_expenses: Gastos mensuales
+  employment_status: Situación laboral
+  company_number: Número de empresa
+  company_name: Nombre de la empresa
+  signatory_name: Nombre del firmante
+  role: Cargo
+  ubo_count: Número de UBO
+  ubo_names: Nombres de UBO
+  annual_revenue: Ingresos anuales
+  employee_count: Número de empleados
+  dni: DNI / NIE
+  pesel: PESEL
+  iban: IBAN
+  account_holder: Titular de la cuenta
+  board_resolution: Referencia de resolución del consejo
+  consent_legend: Consentimiento y declaraciones
+  consent_terms: Acepto los términos y la política de privacidad
+  pep_label: Autodeclaración PEP
+  tax_residency: Residencia fiscal
+  tax_residency_placeholder: "p. ej. SE, ES, PL"
+  employment:
+    employed: Empleado
+    self_employed: Autónomo
+    retired: Jubilado
+    student: Estudiante
+  pep:
+    not_pep: No soy una persona políticamente expuesta
+    pep_family: Soy familiar o asociado cercano de un PEP
+    is_pep: Soy una persona políticamente expuesta
+
+meta:
+  site_title: Ikano onboarding
+  footer: Demo de onboarding — solo integraciones simuladas

@@ -1,25 +1,25 @@
 {% extends "base.html" %}
-{% block title %}Duplicate draft — Ikano{% endblock %}
+{% block title %}{{ t('duplicate.title') }} — Ikano{% endblock %}
 {% block content %}
 <section class="card">
-  <h2>Existing draft found</h2>
-  <p>The personal identifier you entered matches an onboarding draft we already have.</p>
+  <h2>{{ t('duplicate.title') }}</h2>
+  <p>{{ t('duplicate.body') }}</p>
   <ul class="meta">
-    <li>Started: {{ existing_application.created_at.strftime("%Y-%m-%d %H:%M") }}</li>
-    <li>Country: {{ existing_application.country.value }}</li>
-    <li>Account type: {{ existing_application.account_type.value }}</li>
-    <li>Current step: {{ existing_application.current_step_key }}</li>
+    <li>{{ t('duplicate.started') }}: {{ existing_application.created_at.strftime("%Y-%m-%d %H:%M") }}</li>
+    <li>{{ t('resume.country') }}: {{ existing_application.country.value }}</li>
+    <li>{{ t('resume.account_type') }}: {{ t('account_types.' ~ existing_application.account_type.value) }}</li>
+    <li>{{ t('resume.current_step') }}: {{ t('steps.' ~ existing_application.current_step_key, default=existing_application.current_step_key) }}</li>
   </ul>
   <div class="flow-selector">
     <form method="post" action="/onboarding/resume">
       <input type="hidden" name="application_id" value="{{ existing_application.id }}">
-      <button type="submit" class="flow-btn">Resume existing draft</button>
+      <button type="submit" class="flow-btn">{{ t('duplicate.resume_existing') }}</button>
     </form>
     <form method="post" action="/onboarding/{{ application.id }}/step/{{ step_key }}/continue">
       {% for key, value in answers.items() %}
       <input type="hidden" name="{{ key }}" value="{{ value }}">
       {% endfor %}
-      <button type="submit" class="flow-btn">Continue with this application</button>
+      <button type="submit" class="flow-btn">{{ t('duplicate.continue_new') }}</button>
     </form>
   </div>
 </section>

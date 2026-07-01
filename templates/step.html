@@ -1,11 +1,12 @@
 {% extends "base.html" %}
-{% block title %}{{ step.title }} — Ikano{% endblock %}
+{% block title %}{{ step_title | default(step.title) }} — Ikano{% endblock %}
 {% block content %}
 {% include "partials/progress.html" %}
 {% include "partials/resume_link.html" %}
 
-<section class="card">  <h2>{{ step.title }}</h2>
-  <p class="meta">Flow: {{ flow_id }} · Request: {{ application.request_id }}</p>
+<section class="card">
+  <h2>{{ step_title | default(step.title) }}</h2>
+  <p class="meta">{{ t('step.flow_meta', flow_id=flow_id, request_id=application.request_id) }}</p>
 
   {% if errors %}
   <div class="alert alert-error">
@@ -15,7 +16,7 @@
 
   {% if integration_results %}
   <div class="integration-results">
-    <h3>Check results</h3>
+    <h3>{{ t('step.checks_title') }}</h3>
     <ul>
     {% for r in integration_results %}
       <li class="outcome-{{ r.outcome.value }}">{{ r.check_type.value }}: {{ r.outcome.value }} ({{ r.provider }})</li>
@@ -51,9 +52,9 @@
     {% elif schema == "ConsentStep" %}
       {% include "partials/forms/consent.html" %}
     {% elif not schema %}
-      <p>Running automated checks using the information you provided. Click continue to proceed.</p>
+      <p>{{ t('step.automated') }}</p>
     {% endif %}
-    <button type="submit" class="btn-primary">Continue</button>
+    <button type="submit" class="btn-primary">{{ t('common.continue') }}</button>
   </form>
 </section>
 {% endblock %}

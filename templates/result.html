@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Application result — Ikano{% endblock %}
+{% block title %}{{ t('result.title') }} — Ikano{% endblock %}
 {% block content %}
 <section class="card result-card status-{{ application.status.value }}">
-  <h2>Application {{ application.status.value | replace('_', ' ') | title }}</h2>
-  <p class="meta">Request ID: {{ application.request_id }}</p>
+  <h2>{{ t('result.application_status', status=status_label(application.status.value)) }}</h2>
+  <p class="meta">{{ t('result.request_id', request_id=application.request_id) }}</p>
 
   {% if decision %}
   <div class="decision outcome-{{ decision.outcome.value }}">
-    <h3>Decision: {{ decision.outcome.value | replace('_', ' ') | title }}</h3>
+    <h3>{{ t('result.decision', outcome=status_label(decision.outcome.value)) }}</h3>
     {% if decision.reasons %}
     <ul>
       {% for reason in decision.reasons %}
@@ -18,10 +18,10 @@
   </div>
   {% elif application.final_decision %}
   <div class="decision outcome-{{ application.final_decision.value }}">
-    <h3>Decision: {{ application.final_decision.value | replace('_', ' ') | title }}</h3>
+    <h3>{{ t('result.decision', outcome=status_label(application.final_decision.value)) }}</h3>
   </div>
   {% endif %}
 
-  <a href="/" class="btn-secondary">Start new application</a>
+  <a href="/" class="btn-secondary">{{ t('common.start_new') }}</a>
 </section>
 {% endblock %}

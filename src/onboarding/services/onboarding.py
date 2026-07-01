@@ -24,6 +24,7 @@ from onboarding.interfaces.flow import IFlowEngine
 from onboarding.interfaces.integrations import IIntegrationGateway
 from onboarding.interfaces.persistence import IApplicationRepository
 from onboarding.interfaces.resume import IResumeTokenService
+from onboarding.i18n.provider import get_locale_provider
 
 
 def _extract_identifier_hash(answers: dict[str, Any]) -> str | None:
@@ -54,10 +55,7 @@ class OnboardingService:
         self._decision = decision_engine
         self._event_router = event_router
         self._resume_tokens = resume_token_service
-        self._available_flows = available_flows or {
-            "private": ["SE", "ES", "PL"],
-            "business": ["SE", "ES", "PL"],
-        }
+        self._available_flows = available_flows or get_locale_provider().available_flows()
 
     def allowed_countries(self, account_type: str) -> list[str]:
         return list(self._available_flows.get(account_type, []))

@@ -6,7 +6,7 @@ from uuid import UUID
 import pytest
 from fastapi.testclient import TestClient
 
-from tests.integration.postgres_helpers import count_applications_sync, list_segments_sync
+from integration.postgres_helpers import count_applications_sync, list_segments_sync
 
 pytestmark = pytest.mark.postgres
 

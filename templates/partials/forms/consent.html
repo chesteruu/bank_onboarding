@@ -1,20 +1,20 @@
 <fieldset>
-  <legend>Consent & declarations</legend>
+  <legend>{{ t('forms.consent_legend') }}</legend>
   <label class="checkbox">
     <input type="checkbox" name="consent_terms" {% if existing_answers.consent_terms %}checked{% endif %} required>
-    I accept the terms of service and privacy notice
+    {{ t('forms.consent_terms') }}
   </label>
   <label>
-    PEP self-declaration
+    {{ t('forms.pep_label') }}
     <select name="pep_self_declaration" required>
-      <option value="">Select…</option>
-      <option value="not_pep" {% if existing_answers.pep_self_declaration == "not_pep" %}selected{% endif %}>I am not a politically exposed person</option>
-      <option value="pep_family" {% if existing_answers.pep_self_declaration == "pep_family" %}selected{% endif %}>I am a close associate or family member of a PEP</option>
-      <option value="is_pep" {% if existing_answers.pep_self_declaration == "is_pep" %}selected{% endif %}>I am a politically exposed person</option>
+      <option value="">{{ t('common.select') }}</option>
+      <option value="not_pep" {% if existing_answers.pep_self_declaration == "not_pep" %}selected{% endif %}>{{ t('forms.pep.not_pep') }}</option>
+      <option value="pep_family" {% if existing_answers.pep_self_declaration == "pep_family" %}selected{% endif %}>{{ t('forms.pep.pep_family') }}</option>
+      <option value="is_pep" {% if existing_answers.pep_self_declaration == "is_pep" %}selected{% endif %}>{{ t('forms.pep.is_pep') }}</option>
     </select>
   </label>
   <label>
-    Tax residency
-    <input type="text" name="tax_residency" value="{{ existing_answers.tax_residency or '' }}" placeholder="e.g. SE, ES, PL" required>
+    {{ t('forms.tax_residency') }}
+    <input type="text" name="tax_residency" value="{{ existing_answers.tax_residency or '' }}" placeholder="{{ t('forms.tax_residency_placeholder') }}" required>
   </label>
 </fieldset>

@@ -180,8 +180,19 @@ When completing a flow change, report:
 - [ ] Integration keys valid
 - [ ] Form schema registered + template wired (if form step)
 - [ ] Decision rules exist for flow
-- [ ] Country in enum + `available_flows` (if new country)
+- [ ] Country in enum + `i18n/markets.yaml` entry (if new country)
+- [ ] Translation bundle for new market (if new country)
 - [ ] Tests updated/passing
+
+## Internationalization
+
+| File | Purpose |
+|------|---------|
+| `i18n/markets.yaml` | Per-country locale, bundle, enabled account types |
+| `i18n/bundles/en.yaml` | Default strings (pre-country pages) |
+| `i18n/bundles/{CC}.yaml` | Country-specific UI copy |
+
+Templates use `{{ t('key.path') }}`. Do not hardcode applicant-facing strings in HTML.
 
 ## Common mistakes to reject
 
@@ -205,4 +216,5 @@ When completing a flow change, report:
 | Registry | `src/onboarding/flow/orchestrators/registry.py` |
 | Integration map | `src/onboarding/integrations/gateway.py` |
 | Forms | `src/onboarding/web/forms.py` |
+| Market i18n | `i18n/markets.yaml`, `i18n/bundles/` |
 | Full human guide | `docs/FLOWS_GUIDE.md` |

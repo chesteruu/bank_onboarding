@@ -1,22 +1,22 @@
 {% extends "base.html" %}
-{% block title %}Resume onboarding — Ikano{% endblock %}
+{% block title %}{{ t('resume.title') }} — Ikano{% endblock %}
 {% block content %}
 <section class="card">
-  <h2>Welcome back</h2>
-  <p>We found an onboarding you started on <strong>{{ application.created_at.strftime("%Y-%m-%d %H:%M") }}</strong>.</p>
+  <h2>{{ t('resume.title') }}</h2>
+  <p>{{ t('resume.found', date=application.created_at.strftime("%Y-%m-%d %H:%M")) }}</p>
   <ul class="meta">
-    <li>Country: {{ application.country.value }}</li>
-    <li>Account type: {{ application.account_type.value }}</li>
-    <li>Current step: {{ application.current_step_key }}</li>
-    <li>Status: {{ application.status.value }}</li>
+    <li>{{ t('resume.country') }}: {{ application.country.value }}</li>
+    <li>{{ t('resume.account_type') }}: {{ t('account_types.' ~ application.account_type.value) }}</li>
+    <li>{{ t('resume.current_step') }}: {{ t('steps.' ~ application.current_step_key, default=application.current_step_key) }}</li>
+    <li>{{ t('resume.status') }}: {{ status_label(application.status.value) }}</li>
   </ul>
   <div class="flow-selector">
     <form method="post" action="/onboarding/resume">
       <input type="hidden" name="application_id" value="{{ application.id }}">
-      <button type="submit" class="flow-btn">Resume where I left off</button>
+      <button type="submit" class="flow-btn">{{ t('resume.resume_btn') }}</button>
     </form>
     <form method="post" action="/onboarding/start-over">
-      <button type="submit" class="flow-btn">Start over</button>
+      <button type="submit" class="flow-btn">{{ t('resume.start_over_btn') }}</button>
     </form>
   </div>
   {% include "partials/resume_link.html" %}

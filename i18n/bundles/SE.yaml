@@ -1,0 +1,145 @@
+locale: sv
+
+market:
+  display_name: Sverige
+
+account_types:
+  private: Privatkonto
+  business: Företagskonto
+
+common:
+  continue: Fortsätt
+  back: Tillbaka
+  select: Välj…
+  submit: Skicka ansökan
+  start_new: Starta ny ansökan
+
+landing:
+  title: Öppna konto
+  account_question: Vilken typ av konto behöver du?
+  resume_invalid: Återupptagningslänken är ogiltig eller har gått ut. Starta en ny ansökan.
+  demo_title: Demo — magiska identifierare
+  demo_0000: "ID som slutar på {code} → manuell granskning"
+  demo_9999: "ID som slutar på {code} → avslag"
+  demo_pep: "Namn med {code} → möjlig sanktionsträff"
+  demo_sanction: "Namn med {code} → bekräftad träff"
+
+select_country:
+  title: Välj land
+  description: "Välj landet där du vill öppna ditt {account_type}."
+
+resume:
+  title: Välkommen tillbaka
+  found: "Vi hittade en påbörjad ansökan från {date}."
+  resume_btn: Fortsätt där jag slutade
+  start_over_btn: Börja om
+  country: Land
+  account_type: Kontotyp
+  current_step: Aktuellt steg
+  status: Status
+  link_title: Fortsätt på en annan enhet?
+  link_help: Spara länken (giltig i 24 timmar)
+
+duplicate:
+  title: Befintligt utkast hittades
+  body: Personnumret du angav matchar ett utkast vi redan har.
+  started: Startad
+  resume_existing: Återuppta befintligt utkast
+  continue_new: Fortsätt med denna ansökan
+
+progress:
+  step_of: "Steg {current} av {total}: {title}"
+  segment: "{orchestrator}: {step} ({percent}%)"
+
+processing:
+  title: Kontroller pågår
+  wait: Vänta medan vi slutför verifieringen…
+
+step:
+  flow_meta: "Flöde: {flow_id} · Ärende: {request_id}"
+  checks_title: Kontrollresultat
+  automated: Automatiska kontroller körs med uppgifterna du lämnat. Klicka fortsätt.
+
+review:
+  title: Granska och skicka
+  your_answers: Dina uppgifter
+  integration_checks: Integrationskontroller
+  audit_trail: Spårning
+  confirm: Jag bekräftar att uppgifterna är korrekta
+  via: via
+
+result:
+  title: Ansökningsresultat
+  application_status: "Ansökan {status}"
+  decision: "Beslut: {outcome}"
+  request_id: "Ärende-ID: {request_id}"
+
+decisions:
+  approved: Godkänd
+  manual_review: Manuell granskning
+  rejected: Avslagen
+  draft: Utkast
+  submitted: Inskickad
+  processing: Bearbetas
+  abandoned: Övergiven
+
+steps:
+  identity: Verifiera identitet
+  contact: Kontaktuppgifter
+  consent: Samtycke och compliance
+  financial: Sysselsättning och ekonomi
+  credit_decision: Kreditbedömning
+  kyb_decision: KYB-bedömning
+  bank_verification: Bankkontoverifiering
+  company: Företagsuppgifter
+  signatory: Firmatecknare
+  representative: Legal representant
+  board: Styrelsebehörighet
+  ubo: Verkliga huvudmän
+  review: Granska och skicka
+  decision: Beslut
+
+forms:
+  email: E-post
+  phone: Telefon
+  address: Adress
+  city: Ort
+  postal_code: Postnummer
+  national_id_se: Personnummer (ÅÅÅÅMMDD-XXXX)
+  national_id_se_placeholder: "19900101-1234"
+  full_name: Fullständigt namn
+  date_of_birth: Födelsedatum
+  monthly_income: Månadsinkomst
+  monthly_expenses: Månadskostnader
+  employment_status: Sysselsättning
+  company_number: Organisationsnummer
+  company_name: Företagsnamn
+  signatory_name: Firmatecknares namn
+  role: Roll
+  ubo_count: Antal verkliga huvudmän
+  ubo_names: Namn på verkliga huvudmän
+  annual_revenue: Årsomsättning
+  employee_count: Antal anställda
+  dni: DNI / NIE
+  pesel: PESEL
+  iban: IBAN
+  account_holder: Kontoinnehavare
+  board_resolution: Styrelsebeslut referens
+  consent_legend: Samtycke och deklarationer
+  consent_terms: Jag godkänner användarvillkor och integritetspolicy
+  pep_label: PEP-självdeklaration
+  tax_residency: Skatteresidens
+  tax_residency_placeholder: "t.ex. SE, ES, PL"
+  employment:
+    employed: Anställd
+    self_employed: Egen företagare
+    retired: Pensionär
+    student: Student
+  pep:
+    not_pep: Jag är inte en politiskt exponerad person
+    pep_family: Jag är familjemedlem eller nära medarbetare till PEP
+    is_pep: Jag är en politiskt exponerad person
+
+meta:
+  site_title: Ikano onboarding
+  footer: Demo-onboarding — endast mockade integrationer

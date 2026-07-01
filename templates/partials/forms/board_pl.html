@@ -1,6 +1,6 @@
-<label>Authorised signatory
+<label>{{ t('forms.signatory_name') }}
   <input name="signatory_name" value="{{ existing_answers.get('signatory_name', '') }}" required>
 </label>
-<label>Board resolution reference
+<label>{{ t('forms.board_resolution', default='Board resolution reference') }}
   <input name="board_resolution" value="{{ existing_answers.get('board_resolution', '') }}" required>
 </label>

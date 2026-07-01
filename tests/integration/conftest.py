@@ -4,7 +4,7 @@ import pytest
 from fakes import build_event_facade
 
 from onboarding.config import get_settings
-from tests.integration.postgres_helpers import (
+from integration.postgres_helpers import (
     admin_database_url,
     create_session_factory,
     ensure_test_database,
@@ -59,7 +59,7 @@ async def pg_session(postgres_ready: str):
 @pytest.fixture
 async def pg_service(pg_session):
     """Event-driven facade backed by real Postgres."""
-    from tests.integration.postgres_helpers import build_postgres_facade
+    from integration.postgres_helpers import build_postgres_facade
 
     return await build_postgres_facade(pg_session)
 
@@ -73,7 +73,7 @@ def pg_http_client(postgres_ready: str):
 
     from main import create_app
     from onboarding.persistence.database import get_db_session
-    from tests.integration.postgres_helpers import db_session_override
+    from integration.postgres_helpers import db_session_override
 
     truncate_all_tables_sync(postgres_ready)
     engine, factory = create_session_factory(postgres_ready)

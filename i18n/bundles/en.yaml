@@ -1,0 +1,147 @@
+locale: en
+
+meta:
+  site_title: Ikano Onboarding
+  footer: Demo onboarding application — mocked integrations only
+
+market:
+  display_name: English
+
+account_types:
+  private: Personal account
+  business: Business account
+
+common:
+  continue: Continue
+  back: Back
+  select: Select…
+  submit: Submit application
+  start_new: Start new application
+
+landing:
+  title: Open an account
+  account_question: What kind of account do you need?
+  resume_invalid: That resume link is invalid or has expired. Please start a new application.
+  demo_title: Demo magic identifiers
+  demo_0000: "ID ending {code} → manual review"
+  demo_9999: "ID ending {code} → rejection (mismatch/fail)"
+  demo_pep: "Name containing {code} → sanctions possible hit"
+  demo_sanction: "Name containing {code} → confirmed hit"
+
+select_country:
+  title: Select your country
+  description: "Choose the country where you want to open your {account_type} account."
+
+resume:
+  title: Welcome back
+  found: "We found an onboarding you started on {date}."
+  resume_btn: Resume where I left off
+  start_over_btn: Start over
+  country: Country
+  account_type: Account type
+  current_step: Current step
+  status: Status
+  link_title: Continue on another device?
+  link_help: Save this link (valid 24 hours)
+
+duplicate:
+  title: Existing draft found
+  body: The personal identifier you entered matches an onboarding draft we already have.
+  started: Started
+  resume_existing: Resume existing draft
+  continue_new: Continue with this application
+
+progress:
+  step_of: "Step {current} of {total}: {title}"
+  segment: "{orchestrator}: {step} ({percent}%)"
+
+processing:
+  title: Running checks
+  wait: Please wait while we complete verification…
+
+step:
+  flow_meta: "Flow: {flow_id} · Request: {request_id}"
+  checks_title: Check results
+  automated: Running automated checks using the information you provided. Click continue to proceed.
+
+review:
+  title: Review and submit
+  your_answers: Your answers
+  integration_checks: Integration checks
+  audit_trail: Audit trail
+  confirm: I confirm the information provided is accurate
+  via: via
+
+result:
+  title: Application result
+  application_status: "Application {status}"
+  decision: "Decision: {outcome}"
+  request_id: "Request ID: {request_id}"
+
+decisions:
+  approved: Approved
+  manual_review: Manual review
+  rejected: Rejected
+  draft: Draft
+  submitted: Submitted
+  processing: Processing
+  abandoned: Abandoned
+
+steps:
+  identity: Verify identity
+  contact: Contact details
+  consent: Consent and compliance
+  financial: Employment and affordability
+  credit_decision: Credit assessment
+  kyb_decision: KYB assessment
+  bank_verification: Bank account verification
+  company: Company details
+  signatory: Authorised signatory
+  representative: Legal representative
+  board: Board authority
+  ubo: Ultimate beneficial owners
+  review: Review and submit
+  decision: Decision
+
+forms:
+  email: Email
+  phone: Phone
+  address: Address
+  city: City
+  postal_code: Postal code
+  province: Province
+  voivodeship: Voivodeship
+  national_id_se: Personal number (YYYYMMDD-XXXX)
+  national_id_se_placeholder: "19900101-1234"
+  dni: DNI / NIE
+  pesel: PESEL
+  full_name: Full name
+  date_of_birth: Date of birth
+  monthly_income: Monthly income
+  monthly_expenses: Monthly expenses
+  employment_status: Employment status
+  company_number: Company number
+  company_name: Company name
+  signatory_name: Signatory name
+  board_resolution: Board resolution reference
+  role: Role
+  ubo_count: Number of UBOs
+  ubo_names: UBO names
+  annual_revenue: Annual revenue
+  employee_count: Number of employees
+  iban: IBAN
+  account_holder: Account holder
+  consent_legend: Consent and declarations
+  consent_terms: I accept the terms of service and privacy notice
+  pep_label: PEP self-declaration
+  tax_residency: Tax residency
+  tax_residency_placeholder: "e.g. SE, ES, PL"
+  employment:
+    employed: Employed
+    self_employed: Self-employed
+    retired: Retired
+    student: Student
+  pep:
+    not_pep: I am not a politically exposed person
+    pep_family: I am a close associate or family member of a PEP
+    is_pep: I am a politically exposed person

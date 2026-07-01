@@ -1,0 +1,145 @@
+locale: pl
+
+market:
+  display_name: Polska
+
+account_types:
+  private: Konto osobiste
+  business: Konto firmowe
+
+common:
+  continue: Kontynuuj
+  back: Wstecz
+  select: Wybierz…
+  submit: Wyślij wniosek
+  start_new: Rozpocznij nowy wniosek
+
+landing:
+  title: Otwórz konto
+  account_question: Jakiego typu konta potrzebujesz?
+  resume_invalid: Link wznowienia jest nieprawidłowy lub wygasł. Rozpocznij nowy wniosek.
+  demo_title: Demo — magiczne identyfikatory
+  demo_0000: "ID kończące się na {code} → ręczna weryfikacja"
+  demo_9999: "ID kończące się na {code} → odmowa"
+  demo_pep: "Imię zawierające {code} → możliwe trafienie sankcji"
+  demo_sanction: "Imię zawierające {code} → potwierdzone trafienie"
+
+select_country:
+  title: Wybierz kraj
+  description: "Wybierz kraj, w którym chcesz otworzyć konto {account_type}."
+
+resume:
+  title: Witamy ponownie
+  found: "Znaleźliśmy rozpoczęty wniosek z dnia {date}."
+  resume_btn: Wznów w miejscu, w którym skończyłem
+  start_over_btn: Zacznij od nowa
+  country: Kraj
+  account_type: Typ konta
+  current_step: Bieżący krok
+  status: Status
+  link_title: Kontynuować na innym urządzeniu?
+  link_help: Zapisz ten link (ważny 24 godziny)
+
+duplicate:
+  title: Znaleziono istniejący szkic
+  body: Podany identyfikator osobisty pasuje do istniejącego szkicu.
+  started: Rozpoczęto
+  resume_existing: Wznów istniejący szkic
+  continue_new: Kontynuuj ten wniosek
+
+progress:
+  step_of: "Krok {current} z {total}: {title}"
+  segment: "{orchestrator}: {step} ({percent}%)"
+
+processing:
+  title: Trwają kontrole
+  wait: Prosimy czekać na zakończenie weryfikacji…
+
+step:
+  flow_meta: "Przepływ: {flow_id} · Wniosek: {request_id}"
+  checks_title: Wyniki kontroli
+  automated: Uruchamiamy automatyczne kontrole na podstawie podanych danych. Kliknij kontynuuj.
+
+review:
+  title: Przegląd i wysyłka
+  your_answers: Twoje odpowiedzi
+  integration_checks: Kontrole integracyjne
+  audit_trail: Ślad audytu
+  confirm: Potwierdzam, że podane informacje są prawidłowe
+  via: przez
+
+result:
+  title: Wynik wniosku
+  application_status: "Wniosek {status}"
+  decision: "Decyzja: {outcome}"
+  request_id: "ID wniosku: {request_id}"
+
+decisions:
+  approved: Zatwierdzony
+  manual_review: Weryfikacja ręczna
+  rejected: Odrzucony
+  draft: Szkic
+  submitted: Wysłany
+  processing: W trakcie
+  abandoned: Porzucony
+
+steps:
+  identity: Weryfikacja tożsamości
+  contact: Dane kontaktowe
+  consent: Zgoda i zgodność
+  financial: Zatrudnienie i zdolność finansowa
+  credit_decision: Ocena kredytowa
+  kyb_decision: Ocena KYB
+  bank_verification: Weryfikacja konta bankowego
+  company: Dane firmy
+  signatory: Osoba upoważniona
+  representative: Przedstawiciel prawny
+  board: Uprawnienia zarządu
+  ubo: Rzeczywiści beneficjenci
+  review: Przegląd i wysyłka
+  decision: Decyzja
+
+forms:
+  email: E-mail
+  phone: Telefon
+  address: Adres
+  city: Miasto
+  postal_code: Kod pocztowy
+  voivodeship: Województwo
+  national_id_se: Numer PESEL
+  full_name: Imię i nazwisko
+  date_of_birth: Data urodzenia
+  monthly_income: Dochód miesięczny
+  monthly_expenses: Wydatki miesięczne
+  employment_status: Status zatrudnienia
+  company_number: Numer firmy
+  company_name: Nazwa firmy
+  signatory_name: Imię i nazwisko sygnatariusza
+  role: Rola
+  ubo_count: Liczba UBO
+  ubo_names: Imiona UBO
+  annual_revenue: Roczny przychód
+  employee_count: Liczba pracowników
+  dni: DNI / NIE
+  pesel: PESEL
+  iban: IBAN
+  account_holder: Właściciel konta
+  board_resolution: Numer uchwały zarządu
+  consent_legend: Zgoda i oświadczenia
+  consent_terms: Akceptuję regulamin i politykę prywatności
+  pep_label: Samoocena PEP
+  tax_residency: Rezydencja podatkowa
+  tax_residency_placeholder: "np. SE, ES, PL"
+  employment:
+    employed: Zatrudniony
+    self_employed: Samozatrudniony
+    retired: Emeryt
+    student: Student
+  pep:
+    not_pep: Nie jestem osobą zajmującą eksponowane stanowisko polityczne
+    pep_family: Jestem bliskim współpracownikiem lub członkiem rodziny PEP
+    is_pep: Jestem osobą zajmującą eksponowane stanowisko polityczne
+
+meta:
+  site_title: Ikano onboarding
+  footer: Demo onboarding — tylko mockowane integracje

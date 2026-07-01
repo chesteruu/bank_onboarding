@@ -1,0 +1,26 @@
+# Market configuration: enabled countries, locale, and translation bundle per country.
+# available_flows for the app are derived from this file (account_type -> enabled markets).
+
+default:
+  locale: en
+  bundle: en
+
+markets:
+  SE:
+    locale: sv
+    bundle: SE
+    enabled:
+      private: true
+      business: true
+  ES:
+    locale: es
+    bundle: ES
+    enabled:
+      private: true
+      business: true
+  PL:
+    locale: pl
+    bundle: PL
+    enabled:
+      private: true
+      business: true

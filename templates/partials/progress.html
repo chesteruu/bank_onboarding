@@ -1,11 +1,9 @@
 <div class="progress-bar">
   <div class="progress-fill" style="width: {{ progress.percent }}%"></div>
 </div>
-<p class="progress-label">Step {{ progress.current_step }} of {{ progress.total_steps }}: {{ progress.current_step_title }}</p>
+<p class="progress-label">{{ t('progress.step_of', current=progress.current_step, total=progress.total_steps, title=progress.current_step_title) }}</p>
 {% if progress.active_segment %}
 <p class="meta segment-progress">
-  {{ progress.active_segment.orchestrator_id }}:
-  {{ progress.active_segment.internal_step_title or progress.active_segment.internal_step_key }}
-  ({{ progress.active_segment.percent }}%)
+  {{ t('progress.segment', orchestrator=progress.active_segment.orchestrator_id, step=progress.active_segment.internal_step_title or progress.active_segment.internal_step_key, percent=progress.active_segment.percent) }}
 </p>
 {% endif %}

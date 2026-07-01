@@ -167,16 +167,27 @@ min_credit_score: 550
 
 `critical_checks` values map to `IntegrationCheckType` outcomes stored in `integration_results`.
 
-### 6. Enable on landing page
+### 6. Enable market + locale
 
-```python
-# src/onboarding/config.py — Settings.available_flows
-"private": ["SE", "ES", "PL", "NO"],
+Edit `i18n/markets.yaml`:
+
+```yaml
+markets:
+  NO:
+    locale: nb
+    bundle: NO
+    enabled:
+      private: true
+      business: true
 ```
 
-Or override via env if you extend settings to support it.
+`Settings.available_flows` is derived automatically from enabled flags.
 
-### 7. Tests
+### 7. Translation bundle
+
+Create `i18n/bundles/NO.yaml` with UI strings (copy `en.yaml` as template). The app uses the application's country to pick the bundle after onboarding starts; pre-country pages use the default `en` bundle.
+
+### 8. Tests
 
 - Add shell step list to `tests/unit/test_flow_engine.py` parametrize (if new pattern).
 - Run happy-path integration test or extend `tests/integration/test_event_driven_flow.py`.
@@ -274,7 +285,8 @@ Use this before opening a PR:
 - [ ] Integration keys exist in `INTEGRATION_MAP`
 - [ ] Decision rules file matches `flow_id`
 - [ ] `Country` enum updated (new country)
-- [ ] `available_flows` includes the country
+- [ ] Entry in `i18n/markets.yaml` with `enabled` flags + locale/bundle
+- [ ] Translation bundle `i18n/bundles/{country}.yaml`
 - [ ] `pytest` passes (`pytest -m "not postgres"` minimum)
 - [ ] Optional: `pytest -m postgres` with Docker
 
@@ -288,6 +300,8 @@ Use this before opening a PR:
 | Component | `flows/components/{orchestrator}/{market}.yaml` | `components/credit/se_private.yaml` |
 | Shared component | `flows/components/{orchestrator}/default.yaml` | `components/contact/default.yaml` |
 | Decision rules | `src/onboarding/decision/rules/{flow_id}.yaml` | `rules/se_private.yaml` |
+| Translations | `i18n/bundles/{country}.yaml` | `bundles/SE.yaml` |
+| Market config | `i18n/markets.yaml` | enabled + locale per country |
 | Form partial | `templates/partials/forms/{name}.html` | `identity_se.html` |
 
 ---

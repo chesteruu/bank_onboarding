@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import Annotated
+from typing import Annotated, Any
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, Form, Query, Request
@@ -9,13 +9,34 @@ from fastapi.templating import Jinja2Templates
 
 from onboarding.config import Settings, get_settings
 from onboarding.domain.exceptions import DuplicateDraftError
+from onboarding.i18n.provider import get_locale_provider
 from onboarding.services.facade import OnboardingFacade
 from onboarding.web.deps import get_onboarding_service
 from onboarding.web.forms import parse_form
+from onboarding.web.template_context import i18n_context, localize_progress, merge_i18n
 
 router = APIRouter()
 settings = get_settings()
 templates = Jinja2Templates(directory=str(settings.templates_dir))
+
+
+def _country_from_app(app) -> str | None:
+    return app.country.value if app is not None else None
+
+
+def _view_context(view: dict[str, Any], **extra) -> dict[str, Any]:
+    app = view.get("application")
+    country = _country_from_app(app)
+    ctx = {**view, **extra}
+    progress = ctx.get("progress")
+    if progress is not None:
+        tr = get_locale_provider().for_country(country)
+        ctx["progress"] = localize_progress(progress, tr)
+    step = ctx.get("step")
+    if step is not None:
+        tr = get_locale_provider().for_country(country)
+        ctx["step_title"] = tr.step_title(step.key, step.title)
+    return merge_i18n(ctx, country)
 
 
 def _set_device_cookie(response: RedirectResponse, device_id: str, settings: Settings) -> None:
@@ -46,18 +67,25 @@ async def landing(
             return templates.TemplateResponse(
                 request,
                 "resume_prompt.html",
-                {"application": app, "resume_link": resume_link},
+                merge_i18n(
+                    {
+                        "application": app,
+                        "resume_link": resume_link,
+                    },
+                    app.country.value,
+                ),
             )
+    locale = get_locale_provider()
     return templates.TemplateResponse(
         request,
         "landing.html",
-        {
-            "account_types": [
-                ("private", "Personal account"),
-                ("business", "Business account"),
-            ],
-            "resume_error": resume_error,
-        },
+        merge_i18n(
+            {
+                "account_types": locale.account_type_choices(),
+                "resume_error": resume_error,
+            },
+            None,
+        ),
     )
 
 
@@ -115,14 +143,18 @@ async def select_type(
     account_type: Annotated[str, Form()],
     service: Annotated[OnboardingFacade, Depends(get_onboarding_service)],
 ) -> HTMLResponse:
-    countries = service.allowed_countries(account_type)
+    locale = get_locale_provider()
     return templates.TemplateResponse(
         request,
         "select_country.html",
-        {
-            "account_type": account_type,
-            "countries": countries,
-        },
+        merge_i18n(
+            {
+                "account_type": account_type,
+                "country_choices": locale.country_choices(account_type),
+                "account_type_label": locale.for_country(None).t(f"account_types.{account_type}"),
+            },
+            None,
+        ),
     )
 
 
@@ -132,14 +164,18 @@ async def select_country_get(
     account_type: Annotated[str, Query()],
     service: Annotated[OnboardingFacade, Depends(get_onboarding_service)],
 ) -> HTMLResponse:
-    countries = service.allowed_countries(account_type)
+    locale = get_locale_provider()
     return templates.TemplateResponse(
         request,
         "select_country.html",
-        {
-            "account_type": account_type,
-            "countries": countries,
-        },
+        merge_i18n(
+            {
+                "account_type": account_type,
+                "country_choices": locale.country_choices(account_type),
+                "account_type_label": locale.for_country(None).t(f"account_types.{account_type}"),
+            },
+            None,
+        ),
     )
 
 
@@ -177,7 +213,10 @@ async def show_step(
         return templates.TemplateResponse(
             request,
             "result.html",
-            {"application": app, "decision": app.final_decision},
+            merge_i18n(
+                {"application": app, "decision": app.final_decision},
+                app.country.value,
+            ),
         )
 
     template = "review.html" if step.is_review else "step.html"
@@ -191,12 +230,12 @@ async def show_step(
     return templates.TemplateResponse(
         request,
         template,
-        {
-            **view,
-            "review_data": review_data,
-            "resume_link": resume_link,
-            "errors": [],
-        },
+        _view_context(
+            view,
+            review_data=review_data,
+            resume_link=resume_link,
+            errors=[],
+        ),
     )
 
 
@@ -235,10 +274,29 @@ async def processing_page(
     if app is None:
         return RedirectResponse(url="/", status_code=303)
     status = await service.get_status(application_id)
+    tr = get_locale_provider().for_country(app.country.value)
     return templates.TemplateResponse(
         request,
         "processing.html",
-        {"application": app, "status": status},
+        merge_i18n(
+            {
+                "application": app,
+                "status": status,
+                "js_step_of": tr.t(
+                    "progress.step_of",
+                    current="{current}",
+                    total="{total}",
+                    title="{title}",
+                ),
+                "js_segment": tr.t(
+                    "progress.segment",
+                    orchestrator="{orchestrator}",
+                    step="{step}",
+                    percent="{percent}",
+                ),
+            },
+            app.country.value,
+        ),
     )
 
 
@@ -267,7 +325,7 @@ async def submit_step(
             return templates.TemplateResponse(
                 request,
                 "review.html",
-                {**view, "review_data": review_data, "errors": errors},
+                _view_context(view, review_data=review_data, errors=errors),
                 status_code=422,
             )
         decision = await service.finalize_application(application_id)
@@ -275,7 +333,10 @@ async def submit_step(
         return templates.TemplateResponse(
             request,
             "result.html",
-            {"application": app, "decision": decision},
+            merge_i18n(
+                {"application": app, "decision": decision},
+                app.country.value if app else None,
+            ),
         )
 
     answers, errors = (
@@ -285,7 +346,7 @@ async def submit_step(
         return templates.TemplateResponse(
             request,
             "step.html",
-            {**view, "errors": errors or ["Invalid form data"], "existing_answers": data},
+            _view_context(view, errors=errors or ["Invalid form data"], existing_answers=data),
             status_code=422,
         )
 
@@ -296,12 +357,15 @@ async def submit_step(
         return templates.TemplateResponse(
             request,
             "duplicate_prompt.html",
-            {
-                "application": view["application"],
-                "existing_application": existing,
-                "step_key": step_key,
-                "answers": data,
-            },
+            merge_i18n(
+                {
+                    "application": view["application"],
+                    "existing_application": existing,
+                    "step_key": step_key,
+                    "answers": data,
+                },
+                view["application"].country.value,
+            ),
         )
 
     if service.event_driven:
@@ -322,11 +386,11 @@ async def submit_step(
     return templates.TemplateResponse(
         request,
         "step.html",
-        {
-            **view,
-            "integration_results": integration_results,
-            "submitted": True,
-        },
+        _view_context(
+            view,
+            integration_results=integration_results,
+            submitted=True,
+        ),
     )
 
 
