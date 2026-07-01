@@ -42,6 +42,13 @@ def _view_context(view: dict[str, Any], **extra) -> dict[str, Any]:
     if step is not None:
         tr = get_locale_provider().for_country(country)
         ctx["step_title"] = tr.step_title(step.key, step.title)
+        if ctx.get("is_first_step"):
+            ctx["back_label"] = tr.t("step.back_to_country")
+        else:
+            prev_key = ctx.get("previous_step_key")
+            if prev_key:
+                prev_title = tr.step_title(prev_key, prev_key.replace("_", " ").title())
+                ctx["back_label"] = tr.t("step.back_to_previous", step=prev_title)
     return merge_i18n(ctx, country)
 
 
@@ -64,10 +71,12 @@ async def landing(
 ) -> Response:
     device_id = request.cookies.get(settings.device_cookie_name)
     resume_error = request.query_params.get("resume")
-    if device_id:
+    fresh = request.query_params.get("fresh")
+    if device_id and not fresh:
         app = await service.resume_by_device(device_id)
         if app is not None and app.current_step_key is not None:
             resume_link = await service.get_resume_link(app.id, str(request.base_url).rstrip("/"))
+            country_tr = get_locale_provider().for_country(app.country.value)
             return templates.TemplateResponse(
                 request,
                 "resume_prompt.html",
@@ -75,6 +84,9 @@ async def landing(
                     {
                         "application": app,
                         "resume_link": resume_link,
+                        "country_label": country_tr.t(
+                            "market.display_name", default=app.country.value
+                        ),
                     },
                     app.country.value,
                 ),
@@ -241,6 +253,19 @@ async def show_step(
             errors=[],
         ),
     )
+
+
+@router.post("/onboarding/{application_id}/step/{step_key}/back")
+async def go_back_step(
+    application_id: UUID,
+    step_key: str,
+    service: Annotated[OnboardingFacade, Depends(get_onboarding_service)],
+) -> RedirectResponse:
+    try:
+        redirect_url = await service.go_back(application_id, step_key)
+    except ValueError:
+        redirect_url = "/"
+    return RedirectResponse(url=redirect_url, status_code=303)
 
 
 @router.get("/onboarding/{application_id}/status")

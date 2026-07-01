@@ -53,9 +53,12 @@ class FlowEngine:
         step = flow.get_step(step_key)
         if step is None:
             raise ValueError(f"Unknown step {step_key}")
+        previous_key = flow.previous_step_key(step_key)
         return {
             "step": step,
             "flow_id": flow.flow_id,
             "country": application.country.value,
             "account_type": application.account_type.value,
+            "previous_step_key": previous_key,
+            "is_first_step": previous_key is None,
         }

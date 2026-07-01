@@ -3,6 +3,7 @@
 {% block content %}
 {% include "partials/progress.html" %}
 {% include "partials/resume_link.html" %}
+{% include "partials/back_nav.html" %}
 
 <section class="card">
   <h2>{{ t('review.title') }}</h2>
@@ -49,7 +50,9 @@
       <input type="checkbox" name="confirm" required>
       {{ t('review.confirm') }}
     </label>
-    <button type="submit" class="btn-primary">{{ t('common.submit') }}</button>
+    <div class="form-actions">
+      <button type="submit" class="btn-primary">{{ t('common.submit') }}</button>
+    </div>
   </form>
 </section>
 {% endblock %}

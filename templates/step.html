@@ -3,6 +3,7 @@
 {% block content %}
 {% include "partials/progress.html" %}
 {% include "partials/resume_link.html" %}
+{% include "partials/back_nav.html" %}
 
 <section class="card">
   <h2>{{ step_title | default(step.title) }}</h2>
@@ -54,7 +55,9 @@
     {% elif not schema %}
       <p>{{ t('step.automated') }}</p>
     {% endif %}
-    <button type="submit" class="btn-primary">{{ t('common.continue') }}</button>
+    <div class="form-actions">
+      <button type="submit" class="btn-primary">{{ t('common.continue') }}</button>
+    </div>
   </form>
 </section>
 {% endblock %}

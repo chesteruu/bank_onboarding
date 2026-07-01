@@ -39,6 +39,7 @@ resume:
   status: Status
   link_title: Kontynuować na innym urządzeniu?
   link_help: Zapisz ten link (ważny 24 godziny)
+  back_to_start: Wybierz inny typ konta
 
 duplicate:
   title: Znaleziono istniejący szkic
@@ -59,6 +60,8 @@ step:
   flow_meta: "Przepływ: {flow_id} · Wniosek: {request_id}"
   checks_title: Wyniki kontroli
   automated: Uruchamiamy automatyczne kontrole na podstawie podanych danych. Kliknij kontynuuj.
+  back_to_country: Wróć do wyboru kraju
+  back_to_previous: "Wróć do {step}"
 
 review:
   title: Przegląd i wysyłka

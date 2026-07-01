@@ -54,6 +54,9 @@ class OnboardingFacade:
         elif self._legacy:
             await self._legacy.start_over(device_id)
 
+    async def go_back(self, application_id: UUID, step_key: str) -> str:
+        return await self._command.go_back(application_id, step_key)
+
     async def get_status(self, application_id: UUID) -> dict[str, Any]:
         return await self._query.get_status(application_id)
 

@@ -39,6 +39,7 @@ resume:
   status: Status
   link_title: Fortsätt på en annan enhet?
   link_help: Spara länken (giltig i 24 timmar)
+  back_to_start: Välj annan kontotyp
 
 duplicate:
   title: Befintligt utkast hittades
@@ -59,6 +60,8 @@ step:
   flow_meta: "Flöde: {flow_id} · Ärende: {request_id}"
   checks_title: Kontrollresultat
   automated: Automatiska kontroller körs med uppgifterna du lämnat. Klicka fortsätt.
+  back_to_country: Tillbaka till landval
+  back_to_previous: "Tillbaka till {step}"
 
 review:
   title: Granska och skicka

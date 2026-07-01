@@ -35,3 +35,14 @@ async def test_get_admin_detail_includes_segments(service):
     detail = await service.get_admin_application_detail(app.id)
     assert "segments" in detail
     assert len(detail["segments"]) >= 1
+
+
+def test_admin_index_renders():
+    from fastapi.testclient import TestClient
+
+    from main import app
+
+    response = TestClient(app).get("/admin/")
+    assert response.status_code == 200
+    assert "Admin" in response.text
+    assert "Applications" in response.text

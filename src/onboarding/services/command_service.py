@@ -164,3 +164,40 @@ class OnboardingCommandService:
     async def start_over(self, device_id: str) -> None:
         if self._legacy_abandon:
             await self._legacy_abandon(device_id)
+
+    async def go_back(self, application_id: UUID, step_key: str) -> str:
+        """Move the application pointer back one step and sync resume data.
+
+        Returns a redirect URL. From the first shell step, sends the customer to
+        country selection without abandoning the draft (starting a new flow still
+        supersedes it via ``start_application``).
+        """
+        app = await self._repo.get(application_id)
+        if app is None:
+            raise ValueError(f"Application {application_id} not found")
+        if app.status != ApplicationStatus.DRAFT:
+            raise ValueError("Cannot go back on a submitted application")
+
+        flow = self._flow.get_flow(app)
+        current = self._flow.get_current_step(app)
+        if current != step_key:
+            raise ValueError(f"Expected step {current}, got {step_key}")
+
+        previous_key = flow.previous_step_key(step_key)
+        if previous_key is None:
+            return f"/onboarding/select-country?account_type={app.account_type.value}"
+
+        app = await self._repo.update_status(
+            application_id, ApplicationStatus.DRAFT, current_step_key=previous_key
+        )
+        if self._resume_tokens:
+            await self._resume_tokens.sync_resumption(
+                application_id,
+                ResumeTokenData(
+                    application_id=application_id,
+                    current_step_key=previous_key,
+                    identifier_hash=app.identifier_hash,
+                    created_at=app.created_at,
+                ),
+            )
+        return f"/onboarding/{application_id}/step/{previous_key}"

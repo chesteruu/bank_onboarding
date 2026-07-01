@@ -39,6 +39,7 @@ resume:
   status: Estado
   link_title: "¿Continuar en otro dispositivo?"
   link_help: Guarda este enlace (válido 24 horas)
+  back_to_start: Elegir otro tipo de cuenta
 
 duplicate:
   title: Borrador existente
@@ -59,6 +60,8 @@ step:
   flow_meta: "Flujo: {flow_id} · Solicitud: {request_id}"
   checks_title: Resultados de comprobaciones
   automated: Se ejecutan comprobaciones automáticas con tus datos. Pulsa continuar.
+  back_to_country: Volver a la selección de país
+  back_to_previous: "Volver a {step}"
 
 review:
   title: Revisar y enviar

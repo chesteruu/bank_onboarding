@@ -55,6 +55,16 @@ class FlowDefinition(BaseModel):
             return keys[idx + 1]
         return None
 
+    def previous_step_key(self, current_key: str) -> str | None:
+        keys = self.step_keys()
+        try:
+            idx = keys.index(current_key)
+        except ValueError:
+            return None
+        if idx > 0:
+            return keys[idx - 1]
+        return None
+
 
 class Application(BaseModel):
     id: UUID

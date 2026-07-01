@@ -1,0 +1,7 @@
+{% if step.key != 'decision' %}
+<nav class="step-nav">
+  <form method="post" action="/onboarding/{{ application.id }}/step/{{ step.key }}/back" class="back-form">
+    <button type="submit" class="btn-secondary">← {{ back_label | default(t('common.back')) }}</button>
+  </form>
+</nav>
+{% endif %}

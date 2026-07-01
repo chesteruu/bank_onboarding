@@ -43,6 +43,7 @@ resume:
   status: Status
   link_title: Continue on another device?
   link_help: Save this link (valid 24 hours)
+  back_to_start: Choose a different account type
 
 duplicate:
   title: Existing draft found
@@ -63,6 +64,8 @@ step:
   flow_meta: "Flow: {flow_id} · Request: {request_id}"
   checks_title: Check results
   automated: Running automated checks using the information you provided. Click continue to proceed.
+  back_to_country: Back to country selection
+  back_to_previous: "Back to {step}"
 
 review:
   title: Review and submit

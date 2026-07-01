@@ -5,7 +5,7 @@
   <h2>{{ t('resume.title') }}</h2>
   <p>{{ t('resume.found', date=application.created_at.strftime("%Y-%m-%d %H:%M")) }}</p>
   <ul class="meta">
-    <li>{{ t('resume.country') }}: {{ application.country.value }}</li>
+    <li>{{ t('resume.country') }}: {{ country_label | default(application.country.value) }}</li>
     <li>{{ t('resume.account_type') }}: {{ t('account_types.' ~ application.account_type.value) }}</li>
     <li>{{ t('resume.current_step') }}: {{ t('steps.' ~ application.current_step_key, default=application.current_step_key) }}</li>
     <li>{{ t('resume.status') }}: {{ status_label(application.status.value) }}</li>
@@ -19,6 +19,13 @@
       <button type="submit" class="flow-btn">{{ t('resume.start_over_btn') }}</button>
     </form>
   </div>
+  <p class="step-nav">
+    <a href="/onboarding/select-country?account_type={{ application.account_type.value }}" class="back-link">
+      ← {{ t('step.back_to_country') }}
+    </a>
+    ·
+    <a href="/?fresh=1" class="back-link">{{ t('resume.back_to_start') }}</a>
+  </p>
   {% include "partials/resume_link.html" %}
 </section>
 {% endblock %}

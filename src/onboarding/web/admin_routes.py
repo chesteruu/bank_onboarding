@@ -8,10 +8,16 @@ from fastapi.templating import Jinja2Templates
 from onboarding.config import get_settings
 from onboarding.services.facade import OnboardingFacade
 from onboarding.web.deps import get_onboarding_service
+from onboarding.web.template_context import merge_i18n
 
 router = APIRouter(prefix="/admin")
 settings = get_settings()
 templates = Jinja2Templates(directory=str(settings.templates_dir))
+
+
+def _admin_context(context: dict | None = None) -> dict:
+    """Admin UI uses English default strings from base.html."""
+    return merge_i18n(context or {}, None)
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -19,7 +25,7 @@ async def admin_index(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
         request,
         "admin/index.html",
-        {},
+        _admin_context(),
     )
 
 
@@ -32,7 +38,7 @@ async def admin_applications(
     return templates.TemplateResponse(
         request,
         "admin/applications.html",
-        {"applications": applications},
+        _admin_context({"applications": applications}),
     )
 
 
@@ -46,7 +52,7 @@ async def admin_application_detail(
     return templates.TemplateResponse(
         request,
         "admin/application_detail.html",
-        detail,
+        _admin_context(detail),
     )
 
 
@@ -59,7 +65,7 @@ async def admin_traces(
     return templates.TemplateResponse(
         request,
         "admin/traces.html",
-        {"events": events},
+        _admin_context({"events": events}),
     )
 
 
@@ -73,5 +79,5 @@ async def admin_decisions(
     return templates.TemplateResponse(
         request,
         "admin/decisions.html",
-        {"applications": decisions},
+        _admin_context({"applications": decisions}),
     )
