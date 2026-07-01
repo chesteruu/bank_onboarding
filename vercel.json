@@ -1,20 +1,14 @@
 {
-  "builds": [
-    {
-      "src": "main.py",
-      "use": "@vercel/python"
-    }
-  ],
-  "routes": [
-    { "src": "/static/(.*)", "dest": "/public/$1" },
-    { "src": "/(.*)", "dest": "main.py" }
+  "rewrites": [
+    { "source": "/static/(.*)", "destination": "/public/$1" },
+    { "source": "/(.*)", "destination": "/api/index" }
   ],
   "functions": {
-    "main.py": {
+    "api/index.py": {
       "maxDuration": 30
     }
   },
   "env": {
-    "PYTHONPATH": "src"
+    "PYTHONPATH": "src:."
   }
 }

@@ -66,4 +66,4 @@ module = ["tests.*", "fakes"]
 ignore_errors = true
 
 [tool.vercel]
-entrypoint = "main.py"
+entrypoint = "api/index.py"

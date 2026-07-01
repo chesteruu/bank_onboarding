@@ -44,7 +44,6 @@ jobs:
     needs: lint-and-test
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event_name == 'pull_request'
-    environment: ${{ github.event_name == 'pull_request' && 'preview' || 'production' }}
     permissions:
       contents: read
       pull-requests: write
@@ -72,9 +71,9 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            vercel build --token=${{ secrets.VERCEL_TOKEN }}
+            vercel build --yes --token=${{ secrets.VERCEL_TOKEN }}
           else
-            vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+            vercel build --yes --prod --token=${{ secrets.VERCEL_TOKEN }}
           fi
 
       - name: Deploy
@@ -84,11 +83,12 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+            url=$(vercel deploy --prebuilt --yes --token=${{ secrets.VERCEL_TOKEN }})
           else
-            url=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+            url=$(vercel deploy --prebuilt --yes --prod --token=${{ secrets.VERCEL_TOKEN }})
           fi
           echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Deployed to $url"
 
       - name: Comment preview URL on PR
         if: github.event_name == 'pull_request'
