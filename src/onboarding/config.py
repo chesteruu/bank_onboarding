@@ -1,6 +1,12 @@
+from __future__ import annotations
+
+import os
+import ssl
 from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -17,17 +23,42 @@ def _resolve_project_root() -> Path:
     return Path.cwd()
 
 
+def normalize_asyncpg_url(url: str) -> str:
+    """Convert standard Postgres URLs (Neon/Vercel) to SQLAlchemy asyncpg form."""
+    if url.startswith("postgres://"):
+        return "postgresql+asyncpg://" + url.removeprefix("postgres://")
+    if url.startswith("postgresql://"):
+        return "postgresql+asyncpg://" + url.removeprefix("postgresql://")
+    return url
+
+
+def migration_database_url() -> str:
+    """Direct (non-pooled) URL for Alembic migrations — required by Neon."""
+    for key in (
+        "DATABASE_URL_UNPOOLED",
+        "POSTGRES_URL_NON_POOLING",
+        "POSTGRES_URL_NO_POOLING",
+    ):
+        value = os.environ.get(key)
+        if value:
+            return normalize_asyncpg_url(value).replace("+asyncpg", "")
+    settings = get_settings()
+    return settings.sync_database_url
+
+
 PROJECT_ROOT = _resolve_project_root()
 FLOWS_DIR = PROJECT_ROOT / "flows"
 TEMPLATES_DIR = PROJECT_ROOT / "templates"
 PUBLIC_DIR = PROJECT_ROOT / "public"
 I18N_DIR = PROJECT_ROOT / "i18n"
 
+_LOCAL_DEFAULT_DB = "postgresql+asyncpg://postgres:postgres@localhost:5432/onboarding"
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/onboarding"
+    database_url: str = _LOCAL_DEFAULT_DB
     debug: bool = False
     flows_dir: Path = FLOWS_DIR
     templates_dir: Path = TEMPLATES_DIR
@@ -42,6 +73,26 @@ class Settings(BaseSettings):
     integration_retry_backoff_multiplier: float = 2.0
     integration_max_backoff_seconds: float = 2.0
 
+    @model_validator(mode="before")
+    @classmethod
+    def resolve_database_url_from_neon(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        current = data.get("database_url")
+        if current and current != _LOCAL_DEFAULT_DB:
+            return data
+        for env_key in ("DATABASE_URL", "POSTGRES_URL", "POSTGRES_PRISMA_URL"):
+            env_val = os.environ.get(env_key)
+            if env_val:
+                data["database_url"] = env_val
+                break
+        return data
+
+    @field_validator("database_url")
+    @classmethod
+    def normalize_database_url(cls, url: str) -> str:
+        return normalize_asyncpg_url(url)
+
     @property
     def available_flows(self) -> dict[str, list[str]]:
         from onboarding.i18n.provider import get_locale_provider
@@ -51,6 +102,17 @@ class Settings(BaseSettings):
     @property
     def sync_database_url(self) -> str:
         return self.database_url.replace("+asyncpg", "")
+
+    @property
+    def database_ssl_required(self) -> bool:
+        host = self.database_url.split("@")[-1].split("/")[0].split(":")[0].lower()
+        return host not in {"localhost", "127.0.0.1", "postgres"}
+
+
+def database_connect_args(settings: Settings) -> dict[str, Any]:
+    if not settings.database_ssl_required:
+        return {}
+    return {"ssl": ssl.create_default_context()}
 
 
 @lru_cache

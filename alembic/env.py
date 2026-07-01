@@ -3,7 +3,7 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
-from onboarding.config import get_settings
+from onboarding.config import get_settings, migration_database_url
 from onboarding.persistence.models import Base
 
 config = context.config
@@ -12,7 +12,7 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 settings = get_settings()
-config.set_main_option("sqlalchemy.url", settings.sync_database_url)
+config.set_main_option("sqlalchemy.url", migration_database_url())
 
 
 def run_migrations_offline() -> None:

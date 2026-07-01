@@ -2,7 +2,7 @@ from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from onboarding.config import get_settings
+from onboarding.config import database_connect_args, get_settings
 
 _engine = None
 _session_factory: async_sessionmaker[AsyncSession] | None = None
@@ -16,6 +16,8 @@ def get_engine():
             settings.database_url,
             pool_size=1,
             max_overflow=0,
+            pool_pre_ping=True,
+            connect_args=database_connect_args(settings),
             echo=settings.debug,
         )
     return _engine

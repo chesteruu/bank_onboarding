@@ -160,8 +160,28 @@ Happy-path SE private: `199001011234`, `Anna Andersson`.
 ### One-time setup
 
 1. **Create a Vercel project** (link this repo or run `vercel link` locally).
-2. **Provision Neon Postgres** via the Vercel Marketplace and set `DATABASE_URL` (pooled URL with `+asyncpg`).
-3. **Run migrations** against Neon before the first deploy: `alembic upgrade head`.
+2. **Add Neon Postgres** (Vercel does **not** create a database automatically):
+
+   ```bash
+   vercel integration add neon
+   ```
+
+   Or: Vercel Dashboard → **Storage** → **Create Database** → **Neon** → connect to `bank_onboarding`.
+
+   This injects `DATABASE_URL` (pooled) and `DATABASE_URL_UNPOOLED` (for migrations).
+
+3. **Run migrations** once Neon is connected:
+
+   ```bash
+   # Windows
+   .\scripts\migrate_vercel.ps1
+
+   # macOS / Linux
+   ./scripts/migrate_vercel.sh
+   ```
+
+   CI also runs `alembic upgrade head` on every push to `main` when `DATABASE_URL` exists on Vercel.
+
 4. **Add GitHub Actions secrets** (repo → Settings → Secrets and variables → Actions):
 
    | Secret | Where to find it |

@@ -51,6 +51,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        if: github.event_name == 'push'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
 
@@ -63,6 +69,20 @@ jobs:
             vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
           else
             vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          fi
+
+      - name: Run database migrations
+        if: github.event_name == 'push'
+        run: |
+          if [ -f .vercel/.env.production.local ]; then
+            set -a && source .vercel/.env.production.local && set +a
+          fi
+          if [ -n "${DATABASE_URL:-}" ] || [ -n "${POSTGRES_URL:-}" ]; then
+            python -m pip install --upgrade pip
+            pip install -e .
+            alembic upgrade head
+          else
+            echo "::warning::No DATABASE_URL on Vercel — install Neon: vercel integration add neon"
           fi
 
       - name: Deploy to Vercel
