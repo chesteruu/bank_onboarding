@@ -1,0 +1,6 @@
+component_id: default_bank
+orchestrator: bank
+internal_steps:
+  - key: iban_verify
+    integrations: [iban_verify]
+  - key: complete

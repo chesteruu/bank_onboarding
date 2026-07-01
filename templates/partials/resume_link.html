@@ -1,0 +1,6 @@
+{% if resume_link %}
+<aside class="resume-link-box">
+  <p><strong>Continue on another device?</strong> Save this link (valid 24 hours):</p>
+  <input type="text" class="resume-link-input" value="{{ resume_link }}" readonly onclick="this.select()">
+</aside>
+{% endif %}

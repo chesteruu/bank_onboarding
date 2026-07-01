@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Applications — Admin{% endblock %}
+{% block content %}
+<section class="card">
+  <h2>Applications</h2>
+  <p><a href="/admin">← Back to admin</a></p>
+  {% if applications %}
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Request ID</th>
+        <th>Country</th>
+        <th>Type</th>
+        <th>Status</th>
+        <th>Decision</th>
+        <th>Created</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for app in applications %}
+      <tr>
+        <td>{{ app.request_id }}</td>
+        <td>{{ app.country.value }}</td>
+        <td>{{ app.account_type.value }}</td>
+        <td>{{ app.status.value }}</td>
+        <td>{{ app.final_decision.value if app.final_decision else "—" }}</td>
+        <td>{{ app.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+        <td><a href="/admin/applications/{{ app.id }}">View</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No applications yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,6 @@
+component_id: default_financial_business
+orchestrator: financial
+internal_steps:
+  - key: capture
+    title: "Business activity capture"
+  - key: complete

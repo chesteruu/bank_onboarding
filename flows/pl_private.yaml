@@ -1,0 +1,45 @@
+flow_id: pl_private
+country: PL
+account_type: private
+steps:
+  - key: identity
+    title: "Verify identity"
+    orchestrator: identity
+    component_flow: components/identity/pl_private.yaml
+    form_schema: IdentityStepPL
+    on_complete: contact
+  - key: contact
+    title: "Contact details"
+    orchestrator: contact
+    component_flow: components/contact/default.yaml
+    form_schema: ContactStepPL
+    on_complete: consent
+  - key: consent
+    title: "Consent & compliance"
+    orchestrator: compliance
+    component_flow: components/compliance/default.yaml
+    form_schema: ConsentStep
+    on_complete: financial
+  - key: financial
+    title: "Employment & affordability"
+    orchestrator: affordability_input
+    component_flow: components/affordability/default.yaml
+    form_schema: FinancialStepPL
+    on_complete: credit_decision
+  - key: credit_decision
+    title: "Credit assessment"
+    orchestrator: credit
+    component_flow: components/credit/pl_private.yaml
+    on_complete: review
+  - key: review
+    title: "Review and submit"
+    orchestrator: review
+    component_flow: components/review/default.yaml
+    form_schema: ReviewStep
+    is_review: true
+    on_complete: decision
+  - key: decision
+    title: "Decision"
+    orchestrator: decision
+    component_flow: components/decision/default.yaml
+    triggers_decision: true

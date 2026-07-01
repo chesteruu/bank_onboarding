@@ -1,0 +1,7 @@
+component_id: default_contact
+orchestrator: contact
+internal_steps:
+  - key: address_verify
+    title: "Address lookup"
+    integrations: [address_lookup]
+  - key: complete

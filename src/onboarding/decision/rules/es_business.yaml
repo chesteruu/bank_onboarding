@@ -1,0 +1,3 @@
+flow_id: es_business
+critical_checks: [registry, identity, ubo, sanctions, kyb, credit, bank_account]
+min_credit_score: 500

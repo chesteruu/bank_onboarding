@@ -1,0 +1,14 @@
+<label>Monthly income
+  <input name="monthly_income" type="number" step="0.01" value="{{ existing_answers.get('monthly_income', '') }}" required>
+</label>
+<label>Monthly expenses
+  <input name="monthly_expenses" type="number" step="0.01" value="{{ existing_answers.get('monthly_expenses', '') }}" required>
+</label>
+<label>Employment status
+  <select name="employment_status" required>
+    <option value="">Select…</option>
+    {% for opt in ["employed", "self_employed", "retired", "student"] %}
+    <option value="{{ opt }}" {% if existing_answers.get('employment_status') == opt %}selected{% endif %}>{{ opt }}</option>
+    {% endfor %}
+  </select>
+</label>

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Decision chain — Admin{% endblock %}
+{% block content %}
+<section class="card">
+  <h2>Decision chain</h2>
+  <p><a href="/admin">← Back to admin</a></p>
+  {% if applications %}
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Request ID</th>
+        <th>Country</th>
+        <th>Type</th>
+        <th>Decision</th>
+        <th>Finalized</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for app in applications %}
+      <tr class="status-{{ app.final_decision.value }}">
+        <td>{{ app.request_id }}</td>
+        <td>{{ app.country.value }}</td>
+        <td>{{ app.account_type.value }}</td>
+        <td class="decision outcome-{{ app.final_decision.value }}">{{ app.final_decision.value }}</td>
+        <td>{{ app.updated_at.strftime("%Y-%m-%d %H:%M") }}</td>
+        <td><a href="/admin/applications/{{ app.id }}">View</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No finalized applications yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

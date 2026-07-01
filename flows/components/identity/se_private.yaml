@@ -1,0 +1,7 @@
+component_id: se_private_identity
+orchestrator: identity
+internal_steps:
+  - key: bankid_verify
+    title: "BankID verification"
+    integrations: [bankid_identity]
+  - key: complete

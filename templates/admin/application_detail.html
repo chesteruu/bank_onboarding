@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Application {{ application.request_id }} — Admin{% endblock %}
+{% block content %}
+<section class="card">
+  <h2>Application {{ application.request_id }}</h2>
+  <p><a href="/admin/applications">← Back to applications</a></p>
+
+  <h3>Details</h3>
+  <dl class="review-block">
+    <dt>Country</dt><dd>{{ application.country.value }}</dd>
+    <dt>Account type</dt><dd>{{ application.account_type.value }}</dd>
+    <dt>Status</dt><dd>{{ application.status.value }}</dd>
+    <dt>Decision</dt><dd>{{ application.final_decision.value if application.final_decision else "—" }}</dd>
+    <dt>Current step</dt><dd>{{ application.current_step_key or "—" }}</dd>
+    <dt>Device ID</dt><dd>{{ application.device_id or "—" }}</dd>
+    <dt>Created</dt><dd>{{ application.created_at.strftime("%Y-%m-%d %H:%M") }}</dd>
+  </dl>
+
+  <h3>Submissions</h3>
+  {% if submissions %}
+  <div class="audit-list">
+    {% for sub in submissions %}
+    <div class="review-block">
+      <strong>{{ sub.step_key }}</strong>
+      <pre>{{ sub.answers | tojson(indent=2) }}</pre>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p>No submissions yet.</p>
+  {% endif %}
+
+  <h3>Integration results</h3>
+  {% if integrations %}
+  <ul class="check-list">
+    {% for r in integrations %}
+    <li>
+      <span class="outcome-{{ r.outcome.value }}">{{ r.outcome.value }}</span>
+      {{ r.check_type.value }} via {{ r.provider }}
+      <span class="provider">{{ r.ran_at.strftime("%Y-%m-%d %H:%M") }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>No integration results yet.</p>
+  {% endif %}
+
+  <h3>Trace events</h3>
+  {% if audit_events %}
+  <ul class="audit-list">
+    {% for event in audit_events %}
+    <li>
+      <strong>{{ event.event_type }}</strong>
+      <span class="provider">{{ event.actor }}</span>
+      <span class="provider">{{ event.created_at.strftime("%Y-%m-%d %H:%M") }}</span>
+      <pre>{{ event.metadata | tojson(indent=2) }}</pre>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>No trace events yet.</p>
+  {% endif %}
+
+  <h3>Flow segments</h3>
+  {% if segments %}
+  <table class="admin-table">
+    <thead>
+      <tr><th>Segment</th><th>Orchestrator</th><th>Status</th><th>Internal step</th><th>Progress</th></tr>
+    </thead>
+    <tbody>
+      {% for seg in segments %}
+      <tr>
+        <td>{{ seg.segment_key }}</td>
+        <td>{{ seg.orchestrator_id }}</td>
+        <td>{{ seg.status.value }}</td>
+        <td>{{ seg.internal_step_key or "—" }}</td>
+        <td>{{ seg.percent }}%</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No flow segments recorded yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

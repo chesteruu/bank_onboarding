@@ -1,0 +1,7 @@
+component_id: default_compliance
+orchestrator: compliance
+internal_steps:
+  - key: sanctions
+    title: "PEP and sanctions screening"
+    integrations: [sanctions_screen]
+  - key: complete

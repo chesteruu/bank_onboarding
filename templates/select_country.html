@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Select country — Ikano{% endblock %}
+{% block content %}
+<section class="card">
+  <h2>Select your country</h2>
+  <p>Choose the country where you want to open your {{ account_type }} account.</p>
+  <div class="flow-selector">
+    {% for country in countries %}
+    <form method="post" action="/onboarding/start">
+      <input type="hidden" name="account_type" value="{{ account_type }}">
+      <input type="hidden" name="country" value="{{ country }}">
+      <button type="submit" class="flow-btn">{{ country }}</button>
+    </form>
+    {% endfor %}
+  </div>
+  <p><a href="/">← Back</a></p>
+</section>
+{% endblock %}

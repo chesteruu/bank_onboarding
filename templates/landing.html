@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Start onboarding — Ikano{% endblock %}
+{% block content %}
+<section class="card">
+  <h2>Open an account</h2>
+  {% if resume_error == "invalid" %}
+  <div class="alert alert-error">That resume link is invalid or has expired. Please start a new application.</div>
+  {% endif %}
+  <p>What kind of account do you need?</p>
+  <div class="flow-selector">
+    {% for account_type, label in account_types or [("private", "Personal account"), ("business", "Business account")] %}
+    <form method="post" action="/onboarding/select-type">
+      <input type="hidden" name="account_type" value="{{ account_type }}">
+      <button type="submit" class="flow-btn">{{ label }}</button>
+    </form>
+    {% endfor %}
+  </div>
+  <div class="demo-hint">
+    <h3>Demo magic identifiers</h3>
+    <ul>
+      <li>ID ending <code>0000</code> → manual review</li>
+      <li>ID ending <code>9999</code> → rejection (mismatch/fail)</li>
+      <li>Name containing <code>pep</code> → sanctions possible hit</li>
+      <li>Name containing <code>sanction</code> → confirmed hit</li>
+    </ul>
+  </div>
+</section>
+{% endblock %}

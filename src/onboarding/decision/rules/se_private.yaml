@@ -1,0 +1,3 @@
+flow_id: se_private
+critical_checks: [identity, address, sanctions, credit, affordability]
+min_credit_score: 550

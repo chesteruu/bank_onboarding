@@ -1,0 +1,6 @@
+component_id: default_ubo
+orchestrator: ubo
+internal_steps:
+  - key: ubo_kyc_check
+    integrations: [ubo_kyc, sanctions_screen]
+  - key: complete

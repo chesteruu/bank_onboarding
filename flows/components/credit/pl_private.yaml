@@ -1,0 +1,11 @@
+component_id: pl_private_credit
+orchestrator: credit
+internal_steps:
+  - key: bureau_pull
+    title: "BIK credit check"
+    integrations: [bik_credit]
+  - key: affordability_calc
+    title: "Affordability assessment"
+    integrations: [affordability]
+    optional: true
+  - key: complete

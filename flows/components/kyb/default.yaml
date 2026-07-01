@@ -1,0 +1,6 @@
+component_id: default_kyb
+orchestrator: kyb
+internal_steps:
+  - key: kyb_assessment
+    integrations: [kyb_check]
+  - key: complete

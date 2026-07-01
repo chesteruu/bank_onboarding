@@ -1,0 +1,7 @@
+component_id: es_private_identity
+orchestrator: identity
+internal_steps:
+  - key: dni_verify
+    title: "DNI/NIE verification"
+    integrations: [dni_nie_check]
+  - key: complete

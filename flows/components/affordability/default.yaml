@@ -1,0 +1,6 @@
+component_id: default_affordability_input
+orchestrator: affordability_input
+internal_steps:
+  - key: capture
+    title: "Capture financial details"
+  - key: complete

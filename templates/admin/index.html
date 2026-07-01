@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Admin — Ikano{% endblock %}
+{% block content %}
+<section class="card">
+  <h2>Admin</h2>
+  <p>Monitor onboarding applications, traces, and decisions.</p>
+  <div class="flow-selector">
+    <a href="/admin/applications" class="flow-btn">Applications</a>
+    <a href="/admin/traces" class="flow-btn">Trace events</a>
+    <a href="/admin/decisions" class="flow-btn">Decision chain</a>
+  </div>
+</section>
+{% endblock %}

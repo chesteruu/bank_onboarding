@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Review — Ikano{% endblock %}
+{% block content %}
+{% include "partials/progress.html" %}
+{% include "partials/resume_link.html" %}
+
+<section class="card">
+  <h2>Review and submit</h2>
+
+  {% if errors %}
+  <div class="alert alert-error">
+    <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+
+  <h3>Your answers</h3>
+  <div class="review-section">
+    {% for sub in review_data.submissions %}
+    <div class="review-block">
+      <h4>{{ sub.step_key }}</h4>
+      <dl>
+        {% for k, v in sub.answers.items() %}
+        <dt>{{ k }}</dt><dd>{{ v }}</dd>
+        {% endfor %}
+      </dl>
+    </div>
+    {% endfor %}
+  </div>
+
+  <h3>Integration checks</h3>
+  <ul class="check-list">
+    {% for r in review_data.integrations %}
+    <li class="outcome-{{ r.outcome.value }}">
+      <strong>{{ r.check_type.value }}</strong>: {{ r.outcome.value }}
+      <span class="provider">via {{ r.provider }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+
+  <h3>Audit trail</h3>
+  <ul class="audit-list">
+    {% for e in review_data.audit_events %}
+    <li>{{ e.created_at }} — {{ e.event_type }} ({{ e.actor }})</li>
+    {% endfor %}
+  </ul>
+
+  <form method="post">
+    <label class="checkbox">
+      <input type="checkbox" name="confirm" required>
+      I confirm the information provided is accurate
+    </label>
+    <button type="submit" class="btn-primary">Submit application</button>
+  </form>
+</section>
+{% endblock %}

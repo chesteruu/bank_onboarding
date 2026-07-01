@@ -1,0 +1,7 @@
+component_id: pl_private_identity
+orchestrator: identity
+internal_steps:
+  - key: pesel_verify
+    title: "PESEL eID verification"
+    integrations: [pesel_eid_check]
+  - key: complete

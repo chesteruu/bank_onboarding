@@ -1,0 +1,6 @@
+component_id: pl_business_company
+orchestrator: company
+internal_steps:
+  - key: registry_lookup
+    integrations: [ceidg_krs_registry]
+  - key: complete

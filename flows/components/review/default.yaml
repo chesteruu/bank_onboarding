@@ -1,0 +1,4 @@
+component_id: default_review
+orchestrator: review
+internal_steps:
+  - key: complete

@@ -1,0 +1,6 @@
+component_id: pl_business_board
+orchestrator: board
+internal_steps:
+  - key: authority_check
+    integrations: [signatory_check]
+  - key: complete

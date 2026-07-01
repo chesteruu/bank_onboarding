@@ -1,0 +1,6 @@
+component_id: pl_business_bank
+orchestrator: bank
+internal_steps:
+  - key: bank_verify
+    integrations: [bank_verify]
+  - key: complete

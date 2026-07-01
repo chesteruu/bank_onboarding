@@ -1,0 +1,50 @@
+flow_id: se_business
+country: SE
+account_type: business
+steps:
+  - key: company
+    title: "Company details"
+    orchestrator: company
+    component_flow: components/company/se_business.yaml
+    form_schema: CompanyStepSE
+    on_complete: signatory
+  - key: signatory
+    title: "Authorised signatory"
+    orchestrator: signatory
+    component_flow: components/signatory/se_business.yaml
+    form_schema: SignatoryStepSE
+    on_complete: ubo
+  - key: ubo
+    title: "Ultimate beneficial owners"
+    orchestrator: ubo
+    component_flow: components/ubo/default.yaml
+    form_schema: UboStep
+    on_complete: financial
+  - key: financial
+    title: "Business activity & usage"
+    orchestrator: financial
+    component_flow: components/financial/business_default.yaml
+    form_schema: FinancialBusinessStepSE
+    on_complete: kyb_decision
+  - key: kyb_decision
+    title: "KYB assessment"
+    orchestrator: kyb
+    component_flow: components/kyb/default.yaml
+    on_complete: credit_decision
+  - key: credit_decision
+    title: "Business credit assessment"
+    orchestrator: credit
+    component_flow: components/credit/se_business.yaml
+    on_complete: review
+  - key: review
+    title: "Review and submit"
+    orchestrator: review
+    component_flow: components/review/default.yaml
+    form_schema: ReviewStep
+    is_review: true
+    on_complete: decision
+  - key: decision
+    title: "Decision"
+    orchestrator: decision
+    component_flow: components/decision/default.yaml
+    triggers_decision: true

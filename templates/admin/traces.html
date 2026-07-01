@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Trace events — Admin{% endblock %}
+{% block content %}
+<section class="card">
+  <h2>Trace events</h2>
+  <p><a href="/admin">← Back to admin</a></p>
+  {% if events %}
+  <ul class="audit-list">
+    {% for event in events %}
+    <li>
+      <strong>{{ event.event_type }}</strong>
+      <span class="provider">{{ event.actor }}</span>
+      <span class="provider">{{ event.created_at.strftime("%Y-%m-%d %H:%M") }}</span>
+      <br>
+      <a href="/admin/applications/{{ event.application_id }}">{{ event.application_id }}</a>
+      <pre>{{ event.metadata | tojson(indent=2) }}</pre>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>No trace events yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

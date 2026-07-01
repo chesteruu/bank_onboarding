@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}{{ step.title }} — Ikano{% endblock %}
+{% block content %}
+{% include "partials/progress.html" %}
+{% include "partials/resume_link.html" %}
+
+<section class="card">  <h2>{{ step.title }}</h2>
+  <p class="meta">Flow: {{ flow_id }} · Request: {{ application.request_id }}</p>
+
+  {% if errors %}
+  <div class="alert alert-error">
+    <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+
+  {% if integration_results %}
+  <div class="integration-results">
+    <h3>Check results</h3>
+    <ul>
+    {% for r in integration_results %}
+      <li class="outcome-{{ r.outcome.value }}">{{ r.check_type.value }}: {{ r.outcome.value }} ({{ r.provider }})</li>
+    {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <form method="post" class="step-form">
+    {% set schema = step.form_schema %}
+    {% if schema == "IdentityStepSE" %}
+      {% include "partials/forms/identity_se.html" %}
+    {% elif schema == "IdentityStepES" %}
+      {% include "partials/forms/identity_es.html" %}
+    {% elif schema == "IdentityStepPL" %}
+      {% include "partials/forms/identity_pl.html" %}
+    {% elif schema in ["ContactStep", "ContactStepES", "ContactStepPL"] %}
+      {% include "partials/forms/contact.html" %}
+    {% elif schema in ["FinancialStepSE", "FinancialStepES", "FinancialStepPL"] %}
+      {% include "partials/forms/financial_private.html" %}
+    {% elif schema in ["CompanyStepSE", "CompanyStepES", "CompanyStepPL"] %}
+      {% include "partials/forms/company.html" %}
+    {% elif schema == "SignatoryStepSE" %}
+      {% include "partials/forms/signatory_se.html" %}
+    {% elif schema == "RepresentativeStepES" %}
+      {% include "partials/forms/representative_es.html" %}
+    {% elif schema == "BoardStepPL" %}
+      {% include "partials/forms/board_pl.html" %}
+    {% elif schema == "UboStep" %}
+      {% include "partials/forms/ubo.html" %}
+    {% elif schema in ["FinancialBusinessStepSE", "FinancialBusinessStepES", "FinancialBusinessStepPL"] %}
+      {% include "partials/forms/financial_business.html" %}
+    {% elif schema == "ConsentStep" %}
+      {% include "partials/forms/consent.html" %}
+    {% elif not schema %}
+      <p>Running automated checks using the information you provided. Click continue to proceed.</p>
+    {% endif %}
+    <button type="submit" class="btn-primary">Continue</button>
+  </form>
+</section>
+{% endblock %}

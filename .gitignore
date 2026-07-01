@@ -216,3 +216,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# macOS
+.DS_Store
+
+# Cursor IDE (keep project skills in repo)
+.cursor/*
+!.cursor/skills/
+!.cursor/skills/**
+
+# Vercel
+.vercel/

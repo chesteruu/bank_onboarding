@@ -1,0 +1,6 @@
+component_id: default_decision
+orchestrator: decision
+internal_steps:
+  - key: evaluate
+    title: "Evaluate application"
+  - key: complete

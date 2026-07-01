@@ -1,0 +1,8 @@
+component_id: se_business_signatory
+orchestrator: signatory
+internal_steps:
+  - key: bankid_verify
+    integrations: [bankid_identity]
+  - key: authority_check
+    integrations: [signatory_check]
+  - key: complete

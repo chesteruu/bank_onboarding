@@ -1,0 +1,6 @@
+component_id: es_business_representative
+orchestrator: representative
+internal_steps:
+  - key: dni_verify
+    integrations: [dni_nie_check]
+  - key: complete

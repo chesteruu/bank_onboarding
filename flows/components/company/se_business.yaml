@@ -1,0 +1,7 @@
+component_id: default_company
+orchestrator: company
+internal_steps:
+  - key: registry_lookup
+    title: "Company registry lookup"
+    integrations: [bolagsverket_registry]
+  - key: complete
