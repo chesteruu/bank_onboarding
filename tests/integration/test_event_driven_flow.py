@@ -2,7 +2,7 @@
 
 import pytest
 
-from onboarding.domain.enums import IntegrationCheckType
+from onboarding.domain.enums import CheckOutcome, IntegrationCheckType
 from onboarding.domain.events.segment import SegmentStatus
 
 IDENTITY_ANSWERS = {
@@ -133,6 +133,47 @@ async def test_se_private_happy_path_through_decision(service):
     detail = await service.get_admin_application_detail(app.id)
     assert len(detail["segments"]) >= 5
     assert detail["application"].final_decision is not None
+
+
+async def _identity_results(service, app_id):
+    results = await service._repo.get_integration_results(app_id)
+    return [r for r in results if r.check_type == IntegrationCheckType.IDENTITY]
+
+
+@pytest.mark.asyncio
+async def test_unchanged_resubmit_reuses_identity_check(service):
+    """Resumability: going back and resubmitting an unchanged step must not
+    re-run the (expensive/sensitive) identity KYC or persist a duplicate."""
+    app = await service.start_application("SE", "private", device_id="integ-reuse")
+    app, _ = await service.submit_step(app.id, "identity", IDENTITY_ANSWERS)
+    assert app.current_step_key == "contact"
+
+    first = await _identity_results(service, app.id)
+    assert len(first) == 1
+    first_ran_at = first[0].ran_at
+
+    await service.go_back(app.id, "contact")
+    app, _ = await service.submit_step(app.id, "identity", IDENTITY_ANSWERS)
+
+    after = await _identity_results(service, app.id)
+    assert len(after) == 1, "unchanged input must not create a duplicate identity result"
+    assert after[0].ran_at == first_ran_at
+
+
+@pytest.mark.asyncio
+async def test_changed_resubmit_reruns_identity_check(service):
+    """Changing the input must re-run the check and persist a fresh result."""
+    app = await service.start_application("SE", "private", device_id="integ-rerun")
+    await service.submit_step(app.id, "identity", IDENTITY_ANSWERS)
+    assert len(await _identity_results(service, app.id)) == 1
+
+    await service.go_back(app.id, "contact")
+    changed = {**IDENTITY_ANSWERS, "national_id": "199001019999"}
+    await service.submit_step(app.id, "identity", changed)
+
+    after = await _identity_results(service, app.id)
+    assert len(after) == 2
+    assert CheckOutcome.DOCUMENT_MISMATCH in {r.outcome for r in after}
 
 
 @pytest.mark.asyncio

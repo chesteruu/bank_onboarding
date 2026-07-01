@@ -70,10 +70,15 @@ class MockIntegrationGateway:
         application: Application,
         step: FlowStep,
         answers: dict[str, Any],
+        *,
+        prior_results: list[IntegrationResult] | None = None,
     ) -> list[IntegrationResult]:
+        prior = _prior_lookup(prior_results)
         results: list[IntegrationResult] = []
         for integration_key in step.integrations:
-            result = await self._run_single(application.id, application, integration_key, answers)
+            result = await self._run_single(
+                application.id, application, integration_key, answers, prior
+            )
             if result:
                 results.append(result)
         return results
@@ -84,6 +89,7 @@ class MockIntegrationGateway:
         application: Application,
         integration_key: str,
         answers: dict[str, Any],
+        prior: dict[tuple[IntegrationCheckType, str], IntegrationResult],
     ) -> IntegrationResult | None:
         check_type = INTEGRATION_MAP.get(integration_key, IntegrationCheckType.IDENTITY)
         now = datetime.now(timezone.utc)
@@ -112,6 +118,7 @@ class MockIntegrationGateway:
                     ),
                 ],
                 ran_at=now,
+                prior=prior,
             )
 
         if integration_key == "address_lookup":
@@ -136,6 +143,7 @@ class MockIntegrationGateway:
                     ),
                 ],
                 ran_at=now,
+                prior=prior,
             )
 
         if integration_key in (
@@ -161,14 +169,19 @@ class MockIntegrationGateway:
                     ),
                 ],
                 ran_at=now,
+                prior=prior,
             )
 
         if integration_key == "signatory_check":
+            payload_hash = hash_payload({"signatory": answers.get("signatory_name", "")})
+            reused = _reuse(prior, IntegrationCheckType.SIGNATORY, payload_hash)
+            if reused is not None:
+                return reused
             return IntegrationResult(
                 application_id=application_id,
                 check_type=IntegrationCheckType.SIGNATORY,
                 provider="mock-signatory",
-                request_payload_hash=hash_payload({"signatory": answers.get("signatory_name", "")}),
+                request_payload_hash=payload_hash,
                 response={"verified": True},
                 outcome=CheckOutcome.VERIFIED,
                 ran_at=now,
@@ -176,12 +189,16 @@ class MockIntegrationGateway:
 
         if integration_key == "ubo_kyc":
             ubo_count = int(answers.get("ubo_count", 0))
+            payload_hash = hash_payload({"ubo_count": ubo_count})
+            reused = _reuse(prior, IntegrationCheckType.UBO, payload_hash)
+            if reused is not None:
+                return reused
             outcome = CheckOutcome.VERIFIED if ubo_count > 0 else CheckOutcome.MANUAL_REVIEW
             return IntegrationResult(
                 application_id=application_id,
                 check_type=IntegrationCheckType.UBO,
                 provider="mock-ubo",
-                request_payload_hash=hash_payload({"ubo_count": ubo_count}),
+                request_payload_hash=payload_hash,
                 response={"ubo_count": ubo_count},
                 outcome=outcome,
                 ran_at=now,
@@ -209,6 +226,7 @@ class MockIntegrationGateway:
                     ),
                 ],
                 ran_at=now,
+                prior=prior,
             )
 
         if integration_key in ("credit_bureau", "bik_credit", "affordability"):
@@ -241,6 +259,7 @@ class MockIntegrationGateway:
                     ),
                 ],
                 ran_at=now,
+                prior=prior,
             )
 
         if integration_key == "kyb_check":
@@ -264,6 +283,7 @@ class MockIntegrationGateway:
                     ),
                 ],
                 ran_at=now,
+                prior=prior,
             )
 
         if integration_key in ("iban_verify", "bank_verify"):
@@ -287,6 +307,7 @@ class MockIntegrationGateway:
                     ),
                 ],
                 ran_at=now,
+                prior=prior,
             )
 
         return None
@@ -299,7 +320,14 @@ class MockIntegrationGateway:
         request_payload: dict[str, Any],
         providers: list[ProviderSpec[Any]],
         ran_at: datetime,
+        prior: dict[tuple[IntegrationCheckType, str], IntegrationResult],
     ) -> IntegrationResult:
+        payload_hash = hash_payload(request_payload)
+
+        reused = _reuse(prior, check_type, payload_hash)
+        if reused is not None:
+            return reused
+
         try:
             report = await self._caller.execute(providers)
         except AllProvidersFailedError as exc:
@@ -308,7 +336,7 @@ class MockIntegrationGateway:
                 application_id=application_id,
                 check_type=check_type,
                 provider="unavailable",
-                request_payload_hash=hash_payload(request_payload),
+                request_payload_hash=payload_hash,
                 response={
                     "error": str(exc),
                     "call_metadata": _call_metadata_from_attempts(exc.attempts),
@@ -322,11 +350,39 @@ class MockIntegrationGateway:
             application_id=application_id,
             check_type=check_type,
             provider=_response_provider(response, report),
-            request_payload_hash=hash_payload(request_payload),
+            request_payload_hash=payload_hash,
             response=response,
             outcome=CheckOutcome(response["outcome"]),
             ran_at=ran_at,
         )
+
+
+def _prior_lookup(
+    prior_results: list[IntegrationResult] | None,
+) -> dict[tuple[IntegrationCheckType, str], IntegrationResult]:
+    """Index prior results by (check_type, payload hash) for idempotent reuse.
+
+    Later results win so we reuse the most recent outcome for a given input."""
+    lookup: dict[tuple[IntegrationCheckType, str], IntegrationResult] = {}
+    for result in prior_results or []:
+        lookup[(result.check_type, result.request_payload_hash)] = result
+    return lookup
+
+
+def _reuse(
+    prior: dict[tuple[IntegrationCheckType, str], IntegrationResult],
+    check_type: IntegrationCheckType,
+    payload_hash: str,
+) -> IntegrationResult | None:
+    """Return a prior result flagged as reused when the input is unchanged.
+
+    This avoids re-running expensive or sensitive external checks unless the
+    request payload changed. The returned copy is marked ``reused`` so callers
+    can skip re-persisting it while still driving flow progression."""
+    match = prior.get((check_type, payload_hash))
+    if match is None:
+        return None
+    return match.model_copy(update={"reused": True})
 
 
 def _enrich_response(report: IntegrationCallReport[Any]) -> dict[str, Any]:

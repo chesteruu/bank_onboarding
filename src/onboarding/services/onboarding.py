@@ -238,9 +238,13 @@ class OnboardingService:
         aggregated = await self._repo.get_aggregated_answers(application_id)
         integration_results: list[IntegrationResult] = []
         if step.integrations:
-            integration_results = await self._gateway.run_checks(app, step, aggregated)
+            prior_results = await self._repo.get_integration_results(application_id)
+            integration_results = await self._gateway.run_checks(
+                app, step, aggregated, prior_results=prior_results
+            )
             for result in integration_results:
-                await self._repo.save_integration_result(result)
+                if not result.reused:
+                    await self._repo.save_integration_result(result)
                 await self._event_router.emit(
                     FlowEvent(
                         application_id=application_id,

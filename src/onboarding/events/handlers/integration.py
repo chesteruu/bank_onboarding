@@ -35,9 +35,13 @@ class IntegrationHandler:
             title=segment_key,
             integrations=[integration_key],
         )
-        results = await self._gateway.run_checks(app, pseudo_step, aggregated)
+        prior_results = await self._repo.get_integration_results(app.id)
+        results = await self._gateway.run_checks(
+            app, pseudo_step, aggregated, prior_results=prior_results
+        )
         for result in results:
-            await self._repo.save_integration_result(result)
+            if not result.reused:
+                await self._repo.save_integration_result(result)
             envelope = EventEnvelope(
                 event_type=EventType.INTEGRATION_COMPLETED,
                 application_id=app.id,

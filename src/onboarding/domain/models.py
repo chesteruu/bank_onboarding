@@ -97,6 +97,9 @@ class IntegrationResult(BaseModel):
     response: dict[str, Any]
     outcome: CheckOutcome
     ran_at: datetime
+    reused: bool = False
+    """True when this result was reused from a prior identical call (input unchanged)
+    instead of re-invoking the external provider. Not persisted; used to skip re-saving."""
 
 
 class AuditEvent(BaseModel):

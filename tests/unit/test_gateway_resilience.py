@@ -103,3 +103,68 @@ async def test_gateway_bank_timeout_outcome_preserved_for_decision_engine() -> N
     assert len(results) == 1
     assert results[0].check_type == IntegrationCheckType.BANK_ACCOUNT
     assert results[0].outcome == CheckOutcome.TIMEOUT
+
+
+@pytest.mark.asyncio
+async def test_gateway_reuses_prior_result_when_input_unchanged() -> None:
+    from onboarding.domain.models import FlowStep
+
+    gateway = MockIntegrationGateway()
+    step = FlowStep(key="identity", title="Identity", integrations=["bankid_identity"])
+    answers = {"national_id": "199001011234", "full_name": "Verified User"}
+
+    first = await gateway.run_checks(_app(), step, answers)
+    assert first[0].reused is False
+    assert first[0].outcome == CheckOutcome.VERIFIED
+
+    calls = {"n": 0}
+    original_verify = gateway._identity.verify
+
+    async def counting_verify(req):  # noqa: ANN001
+        calls["n"] += 1
+        return await original_verify(req)
+
+    gateway._identity.verify = counting_verify  # type: ignore[method-assign]
+
+    second = await gateway.run_checks(_app(), step, answers, prior_results=first)
+    assert calls["n"] == 0, "external provider must not be called when input is unchanged"
+    assert second[0].reused is True
+    assert second[0].outcome == first[0].outcome
+    assert second[0].request_payload_hash == first[0].request_payload_hash
+
+
+@pytest.mark.asyncio
+async def test_gateway_reruns_when_input_changes() -> None:
+    from onboarding.domain.models import FlowStep
+
+    gateway = MockIntegrationGateway()
+    step = FlowStep(key="identity", title="Identity", integrations=["bankid_identity"])
+
+    first = await gateway.run_checks(
+        _app(), step, {"national_id": "199001011234", "full_name": "Verified User"}
+    )
+    second = await gateway.run_checks(
+        _app(),
+        step,
+        {"national_id": "199001019999", "full_name": "Mismatch User"},
+        prior_results=first,
+    )
+    assert second[0].reused is False
+    assert second[0].outcome == CheckOutcome.DOCUMENT_MISMATCH
+    assert second[0].request_payload_hash != first[0].request_payload_hash
+
+
+@pytest.mark.asyncio
+async def test_gateway_reuses_inline_ubo_result() -> None:
+    from onboarding.domain.models import FlowStep
+
+    gateway = MockIntegrationGateway()
+    step = FlowStep(key="ubo", title="UBO", integrations=["ubo_kyc"])
+    answers = {"ubo_count": 2}
+
+    first = await gateway.run_checks(_app(), step, answers)
+    assert first[0].reused is False
+
+    second = await gateway.run_checks(_app(), step, answers, prior_results=first)
+    assert second[0].reused is True
+    assert second[0].check_type == IntegrationCheckType.UBO

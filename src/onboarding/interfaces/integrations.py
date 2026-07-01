@@ -53,4 +53,6 @@ class IIntegrationGateway(Protocol):
         application: Application,
         step: FlowStep,
         answers: dict[str, Any],
+        *,
+        prior_results: list[IntegrationResult] | None = None,
     ) -> list[IntegrationResult]: ...
