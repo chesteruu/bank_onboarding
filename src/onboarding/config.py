@@ -5,9 +5,13 @@ import ssl
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Neon/Vercel URLs often include these; asyncpg rejects them as connect() kwargs.
+_ASYNCPG_STRIP_QUERY_KEYS = frozenset({"channel_binding", "sslmode"})
 
 
 def _resolve_project_root() -> Path:
@@ -26,10 +30,19 @@ def _resolve_project_root() -> Path:
 def normalize_asyncpg_url(url: str) -> str:
     """Convert standard Postgres URLs (Neon/Vercel) to SQLAlchemy asyncpg form."""
     if url.startswith("postgres://"):
-        return "postgresql+asyncpg://" + url.removeprefix("postgres://")
-    if url.startswith("postgresql://"):
-        return "postgresql+asyncpg://" + url.removeprefix("postgresql://")
-    return url
+        url = "postgresql+asyncpg://" + url.removeprefix("postgres://")
+    elif url.startswith("postgresql://"):
+        url = "postgresql+asyncpg://" + url.removeprefix("postgresql://")
+
+    parsed = urlparse(url)
+    if not parsed.query:
+        return url
+    filtered = [
+        (key, value)
+        for key, value in parse_qsl(parsed.query, keep_blank_values=True)
+        if key not in _ASYNCPG_STRIP_QUERY_KEYS
+    ]
+    return urlunparse(parsed._replace(query=urlencode(filtered)))
 
 
 def ensure_ssl_query_param(url: str) -> str:
