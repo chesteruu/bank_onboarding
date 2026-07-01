@@ -33,9 +33,7 @@ class YamlComponentOrchestrator(IFlowOrchestrator):
         )
         pending = list(first.integrations) if first.integrations else []
         if not pending and len(component.internal_steps) == 1:
-            segment = segment.model_copy(
-                update={"status": SegmentStatus.COMPLETED, "percent": 100}
-            )
+            segment = segment.model_copy(update={"status": SegmentStatus.COMPLETED, "percent": 100})
             return OrchestratorResult(segment=segment, completed=True)
         return OrchestratorResult(
             segment=segment,
@@ -109,7 +107,9 @@ class YamlComponentOrchestrator(IFlowOrchestrator):
         updated = segment.model_copy(
             update={
                 "internal_step_key": next_key,
-                "status": SegmentStatus.PROCESSING if next_step.integrations else SegmentStatus.ACTIVE,
+                "status": SegmentStatus.PROCESSING
+                if next_step.integrations
+                else SegmentStatus.ACTIVE,
                 "percent": self._percent(component, next_key),
                 "sequence": segment.sequence + 1,
             }

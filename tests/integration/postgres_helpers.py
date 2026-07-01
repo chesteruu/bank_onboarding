@@ -32,9 +32,7 @@ from onboarding.services.facade import OnboardingFacade
 from onboarding.services.query_service import OnboardingQueryService
 from onboarding.services.resume_service import PostgresResumeTokenService
 
-DEFAULT_TEST_DATABASE_URL = (
-    "postgresql+asyncpg://postgres:postgres@localhost:5432/onboarding_test"
-)
+DEFAULT_TEST_DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/onboarding_test"
 
 TRUNCATE_TABLES = (
     "event_outbox",
@@ -136,12 +134,14 @@ def list_segments_sync(database_url: str, application_id) -> list[dict]:
     sync_url = database_url.replace("+asyncpg", "")
     engine = create_engine(sync_url, pool_pre_ping=True)
     with engine.connect() as conn:
-        rows = conn.execute(
-            text(
-                "SELECT segment_key, status FROM flow_segments WHERE application_id = :id"
-            ),
-            {"id": str(application_id)},
-        ).mappings().all()
+        rows = (
+            conn.execute(
+                text("SELECT segment_key, status FROM flow_segments WHERE application_id = :id"),
+                {"id": str(application_id)},
+            )
+            .mappings()
+            .all()
+        )
     engine.dispose()
     return [dict(row) for row in rows]
 

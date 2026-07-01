@@ -12,12 +12,12 @@ from onboarding.domain.enums import AccountType, ApplicationStatus, Country
 from onboarding.domain.events.catalog import EventType, routing_key_for
 from onboarding.domain.events.envelope import EventEnvelope
 from onboarding.domain.exceptions import DuplicateDraftError
-from onboarding.domain.models import Application, FlowEvent, ResumeTokenData, StepSubmission
+from onboarding.domain.models import Application, ResumeTokenData, StepSubmission
 from onboarding.events.outbox.publisher import OutboxPublisher
+from onboarding.i18n.provider import get_locale_provider
 from onboarding.interfaces.flow import IFlowEngine
 from onboarding.interfaces.persistence import IApplicationRepository
 from onboarding.interfaces.resume import IResumeTokenService
-from onboarding.i18n.provider import get_locale_provider
 
 
 def _extract_identifier_hash(answers: dict[str, Any]) -> str | None:

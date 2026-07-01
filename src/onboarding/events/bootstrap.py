@@ -5,7 +5,6 @@ from onboarding.events.handlers.coordinator import FlowCoordinatorHandler
 from onboarding.events.handlers.decision import DecisionHandler
 from onboarding.events.handlers.integration import IntegrationHandler
 from onboarding.events.handlers.trace import TraceProjectionHandler
-from onboarding.events.outbox.publisher import OutboxPublisher
 from onboarding.flow.component_provider import ComponentFlowProvider
 from onboarding.flow.orchestrators.registry import OrchestratorRegistry
 

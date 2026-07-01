@@ -61,9 +61,7 @@ async def test_submitted_routes_to_flow_trace():
     session = _make_session()
     router = TraceTableRouter(session)
 
-    await router.emit(
-        FlowEvent(application_id=uuid4(), event_type="submitted", actor="applicant")
-    )
+    await router.emit(FlowEvent(application_id=uuid4(), event_type="submitted", actor="applicant"))
 
     assert isinstance(session.add.call_args[0][0], FlowTraceORM)
 

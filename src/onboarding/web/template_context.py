@@ -19,7 +19,8 @@ def localize_progress(progress: AggregateProgress, translator: Translator) -> Ag
     if active is not None and active.internal_step_key:
         internal_title = translator.t(
             f"steps.{active.internal_step_key}",
-            default=active.internal_step_title or active.internal_step_key.replace("_", " ").title(),
+            default=active.internal_step_title
+            or active.internal_step_key.replace("_", " ").title(),
         )
         active = active.model_copy(update={"internal_step_title": internal_title})
     return progress.model_copy(

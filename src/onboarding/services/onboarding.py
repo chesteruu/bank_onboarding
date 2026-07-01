@@ -18,21 +18,17 @@ from onboarding.domain.models import (
     ResumeTokenData,
     StepSubmission,
 )
+from onboarding.i18n.provider import get_locale_provider
 from onboarding.interfaces.decision import IDecisionEngine
 from onboarding.interfaces.events import IEventRouter
 from onboarding.interfaces.flow import IFlowEngine
 from onboarding.interfaces.integrations import IIntegrationGateway
 from onboarding.interfaces.persistence import IApplicationRepository
 from onboarding.interfaces.resume import IResumeTokenService
-from onboarding.i18n.provider import get_locale_provider
 
 
 def _extract_identifier_hash(answers: dict[str, Any]) -> str | None:
-    identifier = (
-        answers.get("national_id")
-        or answers.get("pesel")
-        or answers.get("dni")
-    )
+    identifier = answers.get("national_id") or answers.get("pesel") or answers.get("dni")
     if identifier:
         return hash_identifier(str(identifier))
     return None
@@ -107,9 +103,7 @@ class OnboardingService:
         return await self._repo.get(application_id)
 
     async def resume_by_device(self, device_id: str) -> Application | None:
-        return await self._repo.get_latest_by_device(
-            device_id, status=ApplicationStatus.DRAFT
-        )
+        return await self._repo.get_latest_by_device(device_id, status=ApplicationStatus.DRAFT)
 
     async def resume_by_token(self, token: str) -> Application | None:
         if self._resume_tokens is None:

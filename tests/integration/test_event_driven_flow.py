@@ -5,7 +5,6 @@ import pytest
 from onboarding.domain.enums import IntegrationCheckType
 from onboarding.domain.events.segment import SegmentStatus
 
-
 IDENTITY_ANSWERS = {
     "national_id": "199001011234",
     "full_name": "Anna Andersson",

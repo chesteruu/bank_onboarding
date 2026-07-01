@@ -1,7 +1,7 @@
 from typing import Protocol
 from uuid import UUID
 
-from onboarding.domain.events.segment import FlowSegment, SegmentProgress
+from onboarding.domain.events.segment import FlowSegment
 
 
 class ISegmentRepository(Protocol):

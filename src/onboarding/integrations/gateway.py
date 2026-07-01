@@ -59,9 +59,7 @@ class MockIntegrationGateway:
     ) -> list[IntegrationResult]:
         results: list[IntegrationResult] = []
         for integration_key in step.integrations:
-            result = await self._run_single(
-                application.id, application, integration_key, answers
-            )
+            result = await self._run_single(application.id, application, integration_key, answers)
             if result:
                 results.append(result)
         return results
@@ -77,60 +75,66 @@ class MockIntegrationGateway:
         now = datetime.now(timezone.utc)
 
         if integration_key in ("bankid_identity", "dni_nie_check", "pesel_eid_check"):
-            req = IdentityCheckRequest(
+            identity_req = IdentityCheckRequest(
                 country=application.country,
-                national_id=answers.get("national_id") or answers.get("pesel") or answers.get("dni", ""),
+                national_id=answers.get("national_id")
+                or answers.get("pesel")
+                or answers.get("dni", ""),
                 full_name=answers.get("full_name", ""),
                 date_of_birth=answers.get("date_of_birth"),
             )
-            resp = await self._identity.verify(req)
-            payload = req.model_dump()
+            identity_resp = await self._identity.verify(identity_req)
+            payload = identity_req.model_dump()
             return IntegrationResult(
                 application_id=application_id,
                 check_type=check_type,
-                provider=resp.provider,
+                provider=identity_resp.provider,
                 request_payload_hash=hash_payload(payload),
-                response=resp.model_dump(mode="json"),
-                outcome=resp.outcome,
+                response=identity_resp.model_dump(mode="json"),
+                outcome=identity_resp.outcome,
                 ran_at=now,
             )
 
-        if integration_key == "address_lookup":
-            req = AddressCheckRequest(
+        elif integration_key == "address_lookup":
+            address_req = AddressCheckRequest(
                 country=application.country,
                 address_line=answers.get("address_line", ""),
                 city=answers.get("city", ""),
                 postal_code=answers.get("postal_code", ""),
             )
-            resp = await self._address.verify(req)
+            address_resp = await self._address.verify(address_req)
             return IntegrationResult(
                 application_id=application_id,
                 check_type=check_type,
-                provider=resp.provider,
-                request_payload_hash=hash_payload(req.model_dump()),
-                response=resp.model_dump(mode="json"),
-                outcome=resp.outcome,
+                provider=address_resp.provider,
+                request_payload_hash=hash_payload(address_req.model_dump()),
+                response=address_resp.model_dump(mode="json"),
+                outcome=address_resp.outcome,
                 ran_at=now,
             )
 
-        if integration_key in ("bolagsverket_registry", "registro_mercantil", "ceidg_krs_registry"):
-            req = RegistryCheckRequest(
+        elif integration_key in (
+            "bolagsverket_registry",
+            "registro_mercantil",
+            "ceidg_krs_registry",
+        ):
+            registry_req = RegistryCheckRequest(
                 country=application.country,
                 company_number=answers.get("company_number", ""),
                 company_name=answers.get("company_name", ""),
             )
-            resp = await self._registry.lookup(req)
+            registry_resp = await self._registry.lookup(registry_req)
             return IntegrationResult(
                 application_id=application_id,
                 check_type=check_type,
-                provider=resp.provider,
-                request_payload_hash=hash_payload(req.model_dump()),
-                response=resp.model_dump(mode="json"),
-                outcome=resp.outcome,
+                provider=registry_resp.provider,
+                request_payload_hash=hash_payload(registry_req.model_dump()),
+                response=registry_resp.model_dump(mode="json"),
+                outcome=registry_resp.outcome,
                 ran_at=now,
             )
 
-        if integration_key == "signatory_check":
+        elif integration_key == "signatory_check":
             return IntegrationResult(
                 application_id=application_id,
                 check_type=IntegrationCheckType.SIGNATORY,
@@ -141,7 +145,7 @@ class MockIntegrationGateway:
                 ran_at=now,
             )
 
-        if integration_key == "ubo_kyc":
+        elif integration_key == "ubo_kyc":
             ubo_count = int(answers.get("ubo_count", 0))
             outcome = CheckOutcome.VERIFIED if ubo_count > 0 else CheckOutcome.MANUAL_REVIEW
             return IntegrationResult(
@@ -154,29 +158,35 @@ class MockIntegrationGateway:
                 ran_at=now,
             )
 
-        if integration_key == "sanctions_screen":
-            name = answers.get("full_name") or answers.get("company_name") or answers.get("signatory_name", "")
-            req = SanctionsCheckRequest(country=application.country, name=name)
-            resp = await self._sanctions.screen(req)
+        elif integration_key == "sanctions_screen":
+            name = (
+                answers.get("full_name")
+                or answers.get("company_name")
+                or answers.get("signatory_name", "")
+            )
+            sanctions_req = SanctionsCheckRequest(country=application.country, name=name)
+            sanctions_resp = await self._sanctions.screen(sanctions_req)
             return IntegrationResult(
                 application_id=application_id,
                 check_type=check_type,
-                provider=resp.provider,
-                request_payload_hash=hash_payload(req.model_dump()),
-                response=resp.model_dump(mode="json"),
-                outcome=resp.outcome,
+                provider=sanctions_resp.provider,
+                request_payload_hash=hash_payload(sanctions_req.model_dump()),
+                response=sanctions_resp.model_dump(mode="json"),
+                outcome=sanctions_resp.outcome,
                 ran_at=now,
             )
 
-        if integration_key in ("credit_bureau", "bik_credit", "affordability"):
-            req = CreditCheckRequest(
+        elif integration_key in ("credit_bureau", "bik_credit", "affordability"):
+            credit_req = CreditCheckRequest(
                 country=application.country,
-                national_id=answers.get("national_id") or answers.get("pesel") or answers.get("dni"),
+                national_id=answers.get("national_id")
+                or answers.get("pesel")
+                or answers.get("dni"),
                 company_number=answers.get("company_number"),
                 monthly_income=_float_or_none(answers.get("monthly_income")),
                 monthly_expenses=_float_or_none(answers.get("monthly_expenses")),
             )
-            resp = await self._credit.check(req)
+            credit_resp = await self._credit.check(credit_req)
             ctype = (
                 IntegrationCheckType.AFFORDABILITY
                 if integration_key == "affordability"
@@ -185,46 +195,46 @@ class MockIntegrationGateway:
             return IntegrationResult(
                 application_id=application_id,
                 check_type=ctype,
-                provider=resp.provider,
-                request_payload_hash=hash_payload(req.model_dump()),
-                response=resp.model_dump(mode="json"),
-                outcome=resp.outcome,
+                provider=credit_resp.provider,
+                request_payload_hash=hash_payload(credit_req.model_dump()),
+                response=credit_resp.model_dump(mode="json"),
+                outcome=credit_resp.outcome,
                 ran_at=now,
             )
 
-        if integration_key == "kyb_check":
-            req = KybCheckRequest(
+        elif integration_key == "kyb_check":
+            kyb_req = KybCheckRequest(
                 country=application.country,
                 company_number=answers.get("company_number", ""),
                 ubo_count=int(answers.get("ubo_count", 0)),
             )
-            resp = await self._kyb.verify(req)
+            kyb_resp = await self._kyb.verify(kyb_req)
             return IntegrationResult(
                 application_id=application_id,
                 check_type=check_type,
-                provider=resp.provider,
-                request_payload_hash=hash_payload(req.model_dump()),
-                response=resp.model_dump(mode="json"),
-                outcome=resp.outcome,
+                provider=kyb_resp.provider,
+                request_payload_hash=hash_payload(kyb_req.model_dump()),
+                response=kyb_resp.model_dump(mode="json"),
+                outcome=kyb_resp.outcome,
                 ran_at=now,
             )
 
-        if integration_key in ("iban_verify", "bank_verify"):
-            req = BankAccountCheckRequest(
+        elif integration_key in ("iban_verify", "bank_verify"):
+            bank_req = BankAccountCheckRequest(
                 country=application.country,
                 iban=answers.get("iban", ""),
                 account_holder=answers.get("account_holder") or answers.get("company_name", ""),
             )
-            resp = await self._bank.verify(req)
-            outcome = resp.outcome
+            bank_resp = await self._bank.verify(bank_req)
+            outcome = bank_resp.outcome
             if outcome == CheckOutcome.TIMEOUT:
                 outcome = CheckOutcome.MANUAL_REVIEW
             return IntegrationResult(
                 application_id=application_id,
                 check_type=check_type,
-                provider=resp.provider,
-                request_payload_hash=hash_payload(req.model_dump()),
-                response=resp.model_dump(mode="json"),
+                provider=bank_resp.provider,
+                request_payload_hash=hash_payload(bank_req.model_dump()),
+                response=bank_resp.model_dump(mode="json"),
                 outcome=outcome,
                 ran_at=now,
             )

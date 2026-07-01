@@ -7,7 +7,6 @@ from onboarding.config import FLOWS_DIR
 from onboarding.domain.enums import AccountType, ApplicationStatus, Country
 from onboarding.domain.events.segment import FlowSegment, SegmentStatus
 from onboarding.domain.models import Application
-from onboarding.flow.engine import FlowEngine
 from onboarding.flow.progress import compute_aggregate_progress
 from onboarding.flow.provider import YamlFlowDefinitionProvider
 

@@ -4,9 +4,9 @@ import re
 from uuid import UUID
 
 import pytest
+from fakes import build_event_facade
 from fastapi.testclient import TestClient
 
-from fakes import build_event_facade
 from main import create_app
 from onboarding.web.deps import get_onboarding_service
 

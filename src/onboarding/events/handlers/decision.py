@@ -37,7 +37,9 @@ class DecisionHandler:
             DecisionOutcome.MANUAL_REVIEW: ApplicationStatus.MANUAL_REVIEW,
             DecisionOutcome.REJECTED: ApplicationStatus.REJECTED,
         }
-        await self._repo.update_status(app.id, ApplicationStatus.SUBMITTED, final_decision=decision.outcome)
+        await self._repo.update_status(
+            app.id, ApplicationStatus.SUBMITTED, final_decision=decision.outcome
+        )
         await self._repo.update_status(
             app.id, status_map[decision.outcome], final_decision=decision.outcome
         )
@@ -50,7 +52,9 @@ class DecisionHandler:
                 application_id=app.id,
                 flow_id=event.envelope.flow_id,
                 correlation_id=event.envelope.correlation_id,
-                routing_key=routing_key_for(EventType.APPLICATION_SUBMITTED, event.envelope.flow_id),
+                routing_key=routing_key_for(
+                    EventType.APPLICATION_SUBMITTED, event.envelope.flow_id
+                ),
                 payload={},
             )
         )

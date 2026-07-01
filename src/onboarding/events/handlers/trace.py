@@ -32,7 +32,6 @@ class TraceProjectionHandler:
 
     async def handle(self, event: DomainEvent) -> None:
         et = event.event_type
-        trace_type = event.envelope.event_type.value
         metadata = {**event.payload, "flow_id": event.envelope.flow_id}
         if event.envelope.segment_key:
             metadata["segment_key"] = event.envelope.segment_key
@@ -40,7 +39,11 @@ class TraceProjectionHandler:
         if et in self._FLOW:
             mapped = self._map_flow_type(et)
         elif et in self._INTEGRATION:
-            mapped = "integration_result" if et != EventType.INTEGRATION_REQUESTED else "integration_requested"
+            mapped = (
+                "integration_result"
+                if et != EventType.INTEGRATION_REQUESTED
+                else "integration_requested"
+            )
         elif et in self._DECISION:
             mapped = "decision" if et == EventType.DECISION_COMPLETED else "decision_requested"
         else:

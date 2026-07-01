@@ -1,0 +1,25 @@
+# Install: pip install -e ".[dev]" && pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.14.1
+    hooks:
+      - id: mypy
+        pass_filenames: false
+        args: [src, main.py]
+        additional_dependencies:
+          - pydantic>=2.10.0
+          - pydantic-settings>=2.6.0
+          - types-PyYAML>=6.0.0
+          - sqlalchemy[mypy]>=2.0.36
+          - fastapi>=0.115.0
+          - email-validator>=2.2.0
+          - pyyaml>=6.0.2

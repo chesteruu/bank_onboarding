@@ -3,6 +3,7 @@ from uuid import uuid4
 
 import pytest
 
+from onboarding.config import PROJECT_ROOT
 from onboarding.decision.engine import RulesDecisionEngine
 from onboarding.domain.enums import (
     AccountType,
@@ -13,7 +14,6 @@ from onboarding.domain.enums import (
     IntegrationCheckType,
 )
 from onboarding.domain.models import Application, IntegrationResult
-from onboarding.config import PROJECT_ROOT
 
 
 @pytest.fixture
@@ -36,7 +36,9 @@ def _app() -> Application:
     )
 
 
-def _result(outcome: CheckOutcome, check_type: IntegrationCheckType = IntegrationCheckType.IDENTITY):
+def _result(
+    outcome: CheckOutcome, check_type: IntegrationCheckType = IntegrationCheckType.IDENTITY
+):
     return IntegrationResult(
         application_id=uuid4(),
         check_type=check_type,

@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
-from uuid import UUID
+from typing import Any, Protocol
 
 from onboarding.domain.events.segment import FlowSegment, SegmentProgress
 from onboarding.domain.models import Application, IntegrationResult
@@ -26,10 +25,10 @@ class OrchestratorResult:
     publish_events: list[Any] = field(default_factory=list)
     completed: bool = False
     failed: bool = False
-    pending_integrations: list[str] = field(default_factory=list)
+    pending_integrations: list[tuple[str, str]] = field(default_factory=list)
 
 
-class IFlowOrchestrator:
+class IFlowOrchestrator(Protocol):
     orchestrator_id: str
 
     async def on_subflow_started(self, ctx: OrchestratorContext) -> OrchestratorResult: ...

@@ -2,15 +2,14 @@ from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
 import pytest
+from fakes import FakeResumeTokenService
 
 from onboarding.domain.models import ResumeTokenData
-from fakes import FakeResumeTokenService
 
 
 class _ExpiredFakeResumeTokenService(FakeResumeTokenService):
     async def create_token(self, application_id, resumption_data):
         token = await super().create_token(application_id, resumption_data)
-        from datetime import datetime, timedelta, timezone
 
         self.expires_at[token] = datetime.now(timezone.utc) - timedelta(hours=1)
         return token
@@ -99,8 +98,6 @@ async def test_revoke_for_application_invalidates_tokens(service):
 
 @pytest.mark.asyncio
 async def test_cleanup_expired_deletes_tokens(service):
-    from datetime import datetime, timedelta, timezone
-
     app_id = uuid4()
     token = await service.create_token(app_id, ResumeTokenData(application_id=app_id))
     service.expires_at[token] = datetime.now(timezone.utc) - timedelta(hours=1)

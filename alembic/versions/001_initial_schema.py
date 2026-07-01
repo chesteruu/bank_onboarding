@@ -5,16 +5,17 @@ Revises:
 Create Date: 2026-06-30
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
 import sqlalchemy as sa
-from alembic import op
 from sqlalchemy.dialects import postgresql
 
+from alembic import op
+
 revision: str = "001"
-down_revision: Union[str, None] = None
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -33,7 +34,12 @@ def upgrade() -> None:
     op.create_table(
         "step_submissions",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("application_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("onboarding_applications.id"), index=True),
+        sa.Column(
+            "application_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("onboarding_applications.id"),
+            index=True,
+        ),
         sa.Column("step_key", sa.String(64), nullable=False),
         sa.Column("answers_json", postgresql.JSONB, server_default="{}"),
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=False),
@@ -42,7 +48,12 @@ def upgrade() -> None:
     op.create_table(
         "integration_results",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("application_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("onboarding_applications.id"), index=True),
+        sa.Column(
+            "application_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("onboarding_applications.id"),
+            index=True,
+        ),
         sa.Column("check_type", sa.String(32), nullable=False),
         sa.Column("provider", sa.String(64), nullable=False),
         sa.Column("request_payload_hash", sa.String(64), nullable=False),
@@ -53,7 +64,12 @@ def upgrade() -> None:
     op.create_table(
         "audit_events",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("application_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("onboarding_applications.id"), index=True),
+        sa.Column(
+            "application_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("onboarding_applications.id"),
+            index=True,
+        ),
         sa.Column("event_type", sa.String(64), nullable=False),
         sa.Column("actor", sa.String(64), server_default="system"),
         sa.Column("metadata_json", postgresql.JSONB, server_default="{}"),
@@ -62,7 +78,12 @@ def upgrade() -> None:
     op.create_table(
         "resume_tokens",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True),
-        sa.Column("application_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("onboarding_applications.id"), index=True),
+        sa.Column(
+            "application_id",
+            postgresql.UUID(as_uuid=True),
+            sa.ForeignKey("onboarding_applications.id"),
+            index=True,
+        ),
         sa.Column("token_hash", sa.String(64), unique=True),
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("used_at", sa.DateTime(timezone=True), nullable=True),

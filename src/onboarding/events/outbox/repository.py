@@ -7,7 +7,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from onboarding.domain.events.envelope import EventEnvelope
-from onboarding.interfaces.outbox import IOutboxRepository
 from onboarding.persistence.models import EventOutboxORM
 
 

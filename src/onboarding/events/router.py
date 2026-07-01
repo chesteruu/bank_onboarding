@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import TypeAlias, cast
 from uuid import UUID
 
 from sqlalchemy import select
@@ -12,6 +13,8 @@ from onboarding.persistence.models import (
     FlowTraceORM,
     IntegrationTraceORM,
 )
+
+TraceORM: TypeAlias = FlowTraceORM | IntegrationTraceORM | DecisionTraceORM
 
 
 class TraceTableRouter(IEventRouter):
@@ -44,7 +47,7 @@ class TraceTableRouter(IEventRouter):
         created_at = event.created_at or datetime.now(timezone.utc)
 
         if event.event_type in self._FLOW_EVENT_TYPES:
-            orm = FlowTraceORM(
+            orm: TraceORM = FlowTraceORM(
                 application_id=event.application_id,
                 event_type=event.event_type,
                 actor=event.actor,
@@ -82,7 +85,10 @@ class TraceTableRouter(IEventRouter):
                 .where(model.application_id == application_id)
                 .order_by(model.created_at)
             )
-            rows = (await self._session.execute(stmt)).scalars().all()
+            rows = cast(
+                list[TraceORM],
+                list((await self._session.execute(stmt)).scalars().all()),
+            )
             events.extend(
                 FlowEvent(
                     application_id=r.application_id,
@@ -101,7 +107,10 @@ class TraceTableRouter(IEventRouter):
         events: list[FlowEvent] = []
         for model in (FlowTraceORM, IntegrationTraceORM, DecisionTraceORM):
             stmt = select(model).order_by(model.created_at.desc()).limit(limit)
-            rows = (await self._session.execute(stmt)).scalars().all()
+            rows = cast(
+                list[TraceORM],
+                list((await self._session.execute(stmt)).scalars().all()),
+            )
             events.extend(
                 FlowEvent(
                     application_id=r.application_id,

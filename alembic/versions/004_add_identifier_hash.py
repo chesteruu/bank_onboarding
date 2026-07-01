@@ -8,6 +8,7 @@ Create Date: 2026-06-30
 from collections.abc import Sequence
 
 import sqlalchemy as sa
+
 from alembic import op
 
 revision: str = "004"
@@ -29,5 +30,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index("ix_onboarding_applications_identifier_hash", table_name="onboarding_applications")
+    op.drop_index(
+        "ix_onboarding_applications_identifier_hash", table_name="onboarding_applications"
+    )
     op.drop_column("onboarding_applications", "identifier_hash")

@@ -36,9 +36,9 @@ async def test_postgres_identity_persists_segments_and_outbox(pg_service, pg_ses
     assert app.current_step_key == "contact"
 
     segment_count = await pg_session.scalar(
-        select(func.count()).select_from(FlowSegmentORM).where(
-            FlowSegmentORM.application_id == app.id
-        )
+        select(func.count())
+        .select_from(FlowSegmentORM)
+        .where(FlowSegmentORM.application_id == app.id)
     )
     assert segment_count >= 1
 
@@ -64,19 +64,27 @@ async def test_postgres_identity_persists_segments_and_outbox(pg_service, pg_ses
     assert integration_count >= 1
 
     flow_traces = (
-        await pg_session.execute(
-            select(FlowTraceORM).where(FlowTraceORM.application_id == app.id)
+        (
+            await pg_session.execute(
+                select(FlowTraceORM).where(FlowTraceORM.application_id == app.id)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     trace_types = {row.event_type for row in flow_traces}
     assert "subflow_started" in trace_types
     assert "subflow_completed" in trace_types
 
     integration_traces = (
-        await pg_session.execute(
-            select(IntegrationTraceORM).where(IntegrationTraceORM.application_id == app.id)
+        (
+            await pg_session.execute(
+                select(IntegrationTraceORM).where(IntegrationTraceORM.application_id == app.id)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     assert len(integration_traces) >= 1
 
 
@@ -115,12 +123,16 @@ async def test_postgres_se_private_full_flow_to_approval(pg_service, pg_session)
     assert app.current_step_key == "review"
 
     integration_types = (
-        await pg_session.execute(
-            select(IntegrationResultORM.check_type).where(
-                IntegrationResultORM.application_id == app.id
+        (
+            await pg_session.execute(
+                select(IntegrationResultORM.check_type).where(
+                    IntegrationResultORM.application_id == app.id
+                )
             )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     assert IntegrationCheckType.IDENTITY.value in integration_types
     assert IntegrationCheckType.CREDIT.value in integration_types
     assert IntegrationCheckType.AFFORDABILITY.value in integration_types

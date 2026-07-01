@@ -9,7 +9,7 @@ from onboarding.domain.enums import ApplicationStatus
 from onboarding.domain.events.catalog import EventType, routing_key_for
 from onboarding.domain.events.envelope import DomainEvent, EventEnvelope
 from onboarding.domain.events.segment import FlowSegment, SegmentStatus
-from onboarding.domain.models import FlowEvent, FlowStep
+from onboarding.domain.models import FlowStep, ResumeTokenData
 from onboarding.events.outbox.publisher import OutboxPublisher
 from onboarding.flow.orchestrators.registry import OrchestratorRegistry
 from onboarding.flow.progress import compute_aggregate_progress
@@ -18,7 +18,6 @@ from onboarding.interfaces.flow_orchestrator import OrchestratorContext
 from onboarding.interfaces.persistence import IApplicationRepository
 from onboarding.interfaces.resume import IResumeTokenService
 from onboarding.interfaces.segment_repository import ISegmentRepository
-from onboarding.domain.models import ResumeTokenData
 
 
 class FlowCoordinatorHandler:
@@ -103,14 +102,26 @@ class FlowCoordinatorHandler:
         segment = await self._segments.upsert(result.segment)
         await self._repo.update_status(app.id, ApplicationStatus.PROCESSING)
 
-        await self._publish(EventType.SUB_FLOW_STARTED, app.id, flow_id, step.key, step.orchestrator, {
-            "segment_key": step.key,
-        })
+        await self._publish(
+            EventType.SUB_FLOW_STARTED,
+            app.id,
+            flow_id,
+            step.key,
+            step.orchestrator,
+            {
+                "segment_key": step.key,
+            },
+        )
 
         if result.pending_integrations:
             for internal_key, integration_key in result.pending_integrations:
                 await self._request_integration(
-                    app.id, flow_id, step.key, step.orchestrator or "", internal_key, integration_key
+                    app.id,
+                    flow_id,
+                    step.key,
+                    step.orchestrator or "",
+                    internal_key,
+                    integration_key,
                 )
         elif result.completed:
             await self._complete_subflow(app.id, flow_id, step.key, step.orchestrator or "")
@@ -152,8 +163,8 @@ class FlowCoordinatorHandler:
             orchestrator = self._orchestrators.get(segment.orchestrator_id)
             if orchestrator is None:
                 return
-            from onboarding.domain.models import IntegrationResult
             from onboarding.domain.enums import CheckOutcome, IntegrationCheckType
+            from onboarding.domain.models import IntegrationResult
 
             result = IntegrationResult(
                 application_id=app.id,
@@ -186,10 +197,17 @@ class FlowCoordinatorHandler:
             if orch_result.pending_integrations:
                 for internal_key, integration_key in orch_result.pending_integrations:
                     await self._request_integration(
-                        app.id, flow.flow_id, segment_key, segment.orchestrator_id, internal_key, integration_key
+                        app.id,
+                        flow.flow_id,
+                        segment_key,
+                        segment.orchestrator_id,
+                        internal_key,
+                        integration_key,
                     )
             elif orch_result.completed:
-                await self._complete_subflow(app.id, flow.flow_id, segment_key, segment.orchestrator_id)
+                await self._complete_subflow(
+                    app.id, flow.flow_id, segment_key, segment.orchestrator_id
+                )
             return
 
         # Inline shell integrations: advance when all done
@@ -225,7 +243,6 @@ class FlowCoordinatorHandler:
         app = await self._repo.get(application_id)
         if app is None:
             return
-        flow = self._flow.get_flow(app)
         await self._publish(
             EventType.SEGMENT_PROGRESS_UPDATED,
             application_id,

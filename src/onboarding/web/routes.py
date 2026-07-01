@@ -4,7 +4,13 @@ from typing import Annotated, Any
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Depends, Form, Query, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Response, StreamingResponse
+from fastapi.responses import (
+    HTMLResponse,
+    JSONResponse,
+    RedirectResponse,
+    Response,
+    StreamingResponse,
+)
 from fastapi.templating import Jinja2Templates
 
 from onboarding.config import Settings, get_settings
@@ -13,7 +19,7 @@ from onboarding.i18n.provider import get_locale_provider
 from onboarding.services.facade import OnboardingFacade
 from onboarding.web.deps import get_onboarding_service
 from onboarding.web.forms import parse_form
-from onboarding.web.template_context import i18n_context, localize_progress, merge_i18n
+from onboarding.web.template_context import localize_progress, merge_i18n
 
 router = APIRouter()
 settings = get_settings()
@@ -61,9 +67,7 @@ async def landing(
     if device_id:
         app = await service.resume_by_device(device_id)
         if app is not None and app.current_step_key is not None:
-            resume_link = await service.get_resume_link(
-                app.id, str(request.base_url).rstrip("/")
-            )
+            resume_link = await service.get_resume_link(app.id, str(request.base_url).rstrip("/"))
             return templates.TemplateResponse(
                 request,
                 "resume_prompt.html",
@@ -264,12 +268,16 @@ async def application_events(
     return StreamingResponse(generate(), media_type="text/event-stream")
 
 
-@router.get("/onboarding/{application_id}/processing", response_class=HTMLResponse)
+@router.get(
+    "/onboarding/{application_id}/processing",
+    response_class=HTMLResponse,
+    response_model=None,
+)
 async def processing_page(
     request: Request,
     application_id: UUID,
     service: Annotated[OnboardingFacade, Depends(get_onboarding_service)],
-) -> HTMLResponse:
+) -> HTMLResponse | RedirectResponse:
     app = await service.get_application(application_id)
     if app is None:
         return RedirectResponse(url="/", status_code=303)
@@ -300,7 +308,9 @@ async def processing_page(
     )
 
 
-@router.post("/onboarding/{application_id}/step/{step_key}", response_class=HTMLResponse, response_model=None)
+@router.post(
+    "/onboarding/{application_id}/step/{step_key}", response_class=HTMLResponse, response_model=None
+)
 async def submit_step(
     request: Request,
     application_id: UUID,
@@ -308,11 +318,13 @@ async def submit_step(
     service: Annotated[OnboardingFacade, Depends(get_onboarding_service)],
 ) -> HTMLResponse | RedirectResponse:
     form = await request.form()
-    data = {k: v for k, v in form.items() if k not in ("confirm", "consent_terms")}
+    data: dict[str, Any] = {k: v for k, v in form.items() if k not in ("confirm", "consent_terms")}
     if "confirm" in form:
         data["confirm"] = form.get("confirm") == "on" or form.get("confirm") == "true"
     if "consent_terms" in form:
-        data["consent_terms"] = form.get("consent_terms") == "on" or form.get("consent_terms") == "true"
+        data["consent_terms"] = (
+            form.get("consent_terms") == "on" or form.get("consent_terms") == "true"
+        )
 
     base_url = str(request.base_url).rstrip("/")
     view = await service.get_step_view(application_id, step_key, base_url=base_url)
@@ -339,9 +351,7 @@ async def submit_step(
             ),
         )
 
-    answers, errors = (
-        parse_form(step.form_schema, data) if step.form_schema else (data, [])
-    )
+    answers, errors = parse_form(step.form_schema, data) if step.form_schema else (data, [])
     if errors or (step.form_schema and answers is None):
         return templates.TemplateResponse(
             request,
@@ -351,7 +361,9 @@ async def submit_step(
         )
 
     try:
-        app, integration_results = await service.submit_step(application_id, step_key, answers or {})
+        app, integration_results = await service.submit_step(
+            application_id, step_key, answers or {}
+        )
     except DuplicateDraftError as exc:
         existing = await service.get_application(exc.existing_application_id)
         return templates.TemplateResponse(
@@ -402,19 +414,19 @@ async def submit_step_continue(
     service: Annotated[OnboardingFacade, Depends(get_onboarding_service)],
 ) -> RedirectResponse:
     form = await request.form()
-    data = {k: v for k, v in form.items() if k not in ("confirm", "consent_terms")}
+    data: dict[str, Any] = {k: v for k, v in form.items() if k not in ("confirm", "consent_terms")}
     if "confirm" in form:
         data["confirm"] = form.get("confirm") == "on" or form.get("confirm") == "true"
     if "consent_terms" in form:
-        data["consent_terms"] = form.get("consent_terms") == "on" or form.get("consent_terms") == "true"
+        data["consent_terms"] = (
+            form.get("consent_terms") == "on" or form.get("consent_terms") == "true"
+        )
 
     view = await service.get_step_view(
         application_id, step_key, base_url=str(request.base_url).rstrip("/")
     )
     step = view["step"]
-    answers, errors = (
-        parse_form(step.form_schema, data) if step.form_schema else (data, [])
-    )
+    answers, errors = parse_form(step.form_schema, data) if step.form_schema else (data, [])
     if errors or (step.form_schema and answers is None):
         return RedirectResponse(
             url=f"/onboarding/{application_id}/step/{step_key}",
@@ -422,7 +434,7 @@ async def submit_step_continue(
         )
 
     app, _ = await service.submit_step(
-        application_id, step_key, answers, allow_duplicate=True
+        application_id, step_key, answers or {}, allow_duplicate=True
     )
     return RedirectResponse(
         url=f"/onboarding/{application_id}/step/{app.current_step_key}",

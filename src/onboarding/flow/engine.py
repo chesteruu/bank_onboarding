@@ -22,9 +22,7 @@ class FlowEngine:
             return application.current_step_key
         return flow.steps[0].key
 
-    def validate_transition(
-        self, application: Application, from_step: str, to_step: str
-    ) -> bool:
+    def validate_transition(self, application: Application, from_step: str, to_step: str) -> bool:
         flow = self.get_flow(application)
         expected = flow.next_step_key(from_step)
         if expected is None:
@@ -50,9 +48,7 @@ class FlowEngine:
             current_step_title=step.title if step else current_key,
         )
 
-    def get_step_context(
-        self, application: Application, step_key: str
-    ) -> dict[str, Any]:
+    def get_step_context(self, application: Application, step_key: str) -> dict[str, Any]:
         flow = self.get_flow(application)
         step = flow.get_step(step_key)
         if step is None:

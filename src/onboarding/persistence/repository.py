@@ -68,9 +68,7 @@ class PostgresApplicationRepository:
         return _to_application(result) if result else None
 
     async def list_applications(self) -> list[Application]:
-        stmt = select(OnboardingApplicationORM).order_by(
-            OnboardingApplicationORM.created_at.desc()
-        )
+        stmt = select(OnboardingApplicationORM).order_by(OnboardingApplicationORM.created_at.desc())
         rows = (await self._session.execute(stmt)).scalars().all()
         return [_to_application(r) for r in rows]
 
@@ -108,9 +106,7 @@ class PostgresApplicationRepository:
         return submission
 
     async def get_step_submissions(self, application_id: UUID) -> list[StepSubmission]:
-        stmt = select(StepSubmissionORM).where(
-            StepSubmissionORM.application_id == application_id
-        )
+        stmt = select(StepSubmissionORM).where(StepSubmissionORM.application_id == application_id)
         rows = (await self._session.execute(stmt)).scalars().all()
         return [
             StepSubmission(

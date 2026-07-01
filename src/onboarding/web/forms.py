@@ -1,4 +1,10 @@
+from typing import Any, Protocol, cast
+
 from pydantic import BaseModel, EmailStr, Field, field_validator
+
+
+class _AnswersForm(Protocol):
+    def to_answers(self) -> dict[str, Any]: ...
 
 
 class ContactStep(BaseModel):
@@ -21,7 +27,11 @@ class IdentityStepES(BaseModel):
     date_of_birth: str
 
     def to_answers(self) -> dict:
-        return {"national_id": self.dni, "full_name": self.full_name, "date_of_birth": self.date_of_birth}
+        return {
+            "national_id": self.dni,
+            "full_name": self.full_name,
+            "date_of_birth": self.date_of_birth,
+        }
 
 
 class IdentityStepPL(BaseModel):
@@ -30,7 +40,12 @@ class IdentityStepPL(BaseModel):
     date_of_birth: str
 
     def to_answers(self) -> dict:
-        return {"national_id": self.pesel, "pesel": self.pesel, "full_name": self.full_name, "date_of_birth": self.date_of_birth}
+        return {
+            "national_id": self.pesel,
+            "pesel": self.pesel,
+            "full_name": self.full_name,
+            "date_of_birth": self.date_of_birth,
+        }
 
 
 class ContactStepES(ContactStep):
@@ -86,7 +101,12 @@ class RepresentativeStepES(BaseModel):
     role: str
 
     def to_answers(self) -> dict:
-        return {"signatory_name": self.full_name, "national_id": self.dni, "full_name": self.full_name, "role": self.role}
+        return {
+            "signatory_name": self.full_name,
+            "national_id": self.dni,
+            "full_name": self.full_name,
+            "role": self.role,
+        }
 
 
 class BoardStepPL(BaseModel):
@@ -175,15 +195,9 @@ def parse_form(schema_name: str | None, data: dict) -> tuple[dict | None, list[s
     if schema_cls is None:
         return None, [f"Unknown form schema: {schema_name}"]
     try:
-        if schema_name == "IdentityStepES":
+        if schema_name in ("IdentityStepES", "IdentityStepPL", "RepresentativeStepES"):
             model = schema_cls.model_validate(data)
-            answers = model.to_answers()
-        elif schema_name == "IdentityStepPL":
-            model = schema_cls.model_validate(data)
-            answers = model.to_answers()
-        elif schema_name == "RepresentativeStepES":
-            model = schema_cls.model_validate(data)
-            answers = model.to_answers()
+            answers = cast(_AnswersForm, model).to_answers()
         else:
             model = schema_cls.model_validate(data)
             answers = model.model_dump()

@@ -19,9 +19,7 @@ class PostgresResumeTokenService(IResumeTokenService):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def create_token(
-        self, application_id: UUID, resumption_data: ResumeTokenData
-    ) -> str:
+    async def create_token(self, application_id: UUID, resumption_data: ResumeTokenData) -> str:
         await self.cleanup_expired()
         token_value = uuid4().hex
         expires_at = datetime.now(timezone.utc) + timedelta(hours=24)
@@ -77,9 +75,7 @@ class PostgresResumeTokenService(IResumeTokenService):
         )
         return (await self._session.execute(stmt)).scalars().first()
 
-    async def sync_resumption(
-        self, application_id: UUID, resumption_data: ResumeTokenData
-    ) -> None:
+    async def sync_resumption(self, application_id: UUID, resumption_data: ResumeTokenData) -> None:
         stmt = (
             select(ResumeTokenORM)
             .where(ResumeTokenORM.application_id == application_id)
@@ -96,9 +92,7 @@ class PostgresResumeTokenService(IResumeTokenService):
         await self.create_token(application_id, resumption_data)
 
     async def cleanup_expired(self) -> int:
-        stmt = delete(ResumeTokenORM).where(
-            ResumeTokenORM.expires_at < datetime.now(timezone.utc)
-        )
+        stmt = delete(ResumeTokenORM).where(ResumeTokenORM.expires_at < datetime.now(timezone.utc))
         result = await self._session.execute(stmt)
         await self._session.commit()
-        return result.rowcount or 0
+        return int(getattr(result, "rowcount", 0) or 0)

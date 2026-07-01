@@ -49,6 +49,26 @@ pip install -e ".[dev]"
 cp .env.example .env
 ```
 
+### Git hooks (lint + mypy)
+
+Every commit runs **ruff** (lint + format) and **mypy** via [pre-commit](https://pre-commit.com/):
+
+```bash
+# Windows
+.\scripts\install-hooks.ps1
+
+# macOS / Linux
+./scripts/install-hooks.sh
+```
+
+Or manually: `pre-commit install`
+
+Run checks without committing:
+
+```bash
+pre-commit run --all-files
+```
+
 ### Database (Docker — recommended)
 
 ```bash

@@ -1,5 +1,11 @@
 import pytest
-from fakes import FakeEventRouter, FakeOutboxRepository, FakeRepository, FakeResumeTokenService, FakeSegmentRepository
+from fakes import (
+    FakeEventRouter,
+    FakeOutboxRepository,
+    FakeRepository,
+    FakeResumeTokenService,
+    FakeSegmentRepository,
+)
 
 from onboarding.config import FLOWS_DIR, PROJECT_ROOT
 from onboarding.decision.engine import RulesDecisionEngine
@@ -9,8 +15,8 @@ from onboarding.domain.events.envelope import EventEnvelope
 from onboarding.events.bootstrap import build_orchestrator_registry, wire_event_system
 from onboarding.events.bus.in_process import InProcessEventBus
 from onboarding.events.handlers.coordinator import FlowCoordinatorHandler
-from onboarding.events.handlers.integration import IntegrationHandler
 from onboarding.events.handlers.decision import DecisionHandler
+from onboarding.events.handlers.integration import IntegrationHandler
 from onboarding.events.handlers.trace import TraceProjectionHandler
 from onboarding.events.outbox.publisher import OutboxPublisher
 from onboarding.flow.engine import FlowEngine
@@ -30,16 +36,19 @@ async def test_coordinator_advances_after_integration():
     bus = InProcessEventBus()
     publisher = OutboxPublisher(FakeOutboxRepository(), bus)
     orchestrators = build_orchestrator_registry(FLOWS_DIR)
-    coordinator = FlowCoordinatorHandler(
-        repo, segments, engine, orchestrators, publisher, resume
-    )
+    coordinator = FlowCoordinatorHandler(repo, segments, engine, orchestrators, publisher, resume)
     integration = IntegrationHandler(repo, gateway, publisher)
     trace = TraceProjectionHandler(events)
     rules_dir = PROJECT_ROOT / "src" / "onboarding" / "decision" / "rules"
     decision = DecisionHandler(repo, RulesDecisionEngine(rules_dir), publisher, resume)
     wire_event_system(
         bus,
-        {"coordinator": coordinator, "integration": integration, "trace": trace, "decision": decision},
+        {
+            "coordinator": coordinator,
+            "integration": integration,
+            "trace": trace,
+            "decision": decision,
+        },
     )
 
     app = await repo.create(

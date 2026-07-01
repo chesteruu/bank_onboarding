@@ -39,7 +39,9 @@ def sanctions_outcome(name: str) -> CheckOutcome:
     return CheckOutcome.NO_HIT
 
 
-def credit_outcome(identifier: str, monthly_income: float | None, monthly_expenses: float | None) -> CheckOutcome:
+def credit_outcome(
+    identifier: str, monthly_income: float | None, monthly_expenses: float | None
+) -> CheckOutcome:
     s = suffix(identifier)
     if s.endswith("9999"):
         return CheckOutcome.FAIL

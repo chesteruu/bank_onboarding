@@ -5,7 +5,6 @@ import yaml
 from onboarding.domain.enums import CheckOutcome, DecisionOutcome, IntegrationCheckType
 from onboarding.domain.models import Application, DecisionResult, IntegrationResult
 
-
 REJECT_OUTCOMES = {
     CheckOutcome.CONFIRMED_HIT,
     CheckOutcome.DISSOLVED,

@@ -3,7 +3,6 @@ from typing import Any
 from uuid import UUID, uuid4
 
 from onboarding.domain.enums import ApplicationStatus, CheckOutcome, IntegrationCheckType
-from onboarding.i18n.provider import get_locale_provider
 from onboarding.domain.events.envelope import EventEnvelope
 from onboarding.domain.events.segment import FlowSegment
 from onboarding.domain.models import (
@@ -13,6 +12,7 @@ from onboarding.domain.models import (
     ResumeTokenData,
     StepSubmission,
 )
+from onboarding.i18n.provider import get_locale_provider
 
 
 class FakeRepository:
@@ -27,9 +27,7 @@ class FakeRepository:
         self._counter += 1
         return self._counter
 
-    async def create(
-        self, *, request_id, country, account_type, current_step_key, device_id=None
-    ):
+    async def create(self, *, request_id, country, account_type, current_step_key, device_id=None):
         now = datetime.now(timezone.utc)
         seq = self._next_sequence()
         app = Application(
@@ -178,9 +176,7 @@ class FakeResumeTokenService:
         self.used: set[str] = set()
         self.app_tokens: dict[UUID, str] = {}
 
-    async def create_token(
-        self, application_id: UUID, resumption_data: ResumeTokenData
-    ) -> str:
+    async def create_token(self, application_id: UUID, resumption_data: ResumeTokenData) -> str:
         token = uuid4().hex
         self.tokens[token] = resumption_data
         self.expires_at[token] = datetime.now(timezone.utc) + timedelta(hours=24)
@@ -212,17 +208,13 @@ class FakeResumeTokenService:
         token = self.app_tokens.get(application_id)
         if token is None:
             return None
-        if (
-            token in self.used
-            or self.expires_at.get(token, datetime.min.replace(tzinfo=timezone.utc))
-            < datetime.now(timezone.utc)
-        ):
+        if token in self.used or self.expires_at.get(
+            token, datetime.min.replace(tzinfo=timezone.utc)
+        ) < datetime.now(timezone.utc):
             return None
         return token
 
-    async def sync_resumption(
-        self, application_id: UUID, resumption_data: ResumeTokenData
-    ) -> None:
+    async def sync_resumption(self, application_id: UUID, resumption_data: ResumeTokenData) -> None:
         token = await self.get_active_token(application_id)
         if token is not None:
             self.tokens[token] = resumption_data
@@ -249,9 +241,7 @@ class FakeSegmentRepository:
         existing = self.segments.get(key)
         if existing and segment.sequence < existing.sequence:
             segment = segment.model_copy(update={"sequence": existing.sequence})
-        self.segments[key] = segment.model_copy(
-            update={"updated_at": datetime.now(timezone.utc)}
-        )
+        self.segments[key] = segment.model_copy(update={"updated_at": datetime.now(timezone.utc)})
         return self.segments[key]
 
     async def get(self, application_id: UUID, segment_key: str) -> FlowSegment | None:
@@ -266,7 +256,8 @@ class FakeSegmentRepository:
         active = [
             s
             for (aid, _), s in self.segments.items()
-            if aid == application_id and s.status in (SegmentStatus.ACTIVE, SegmentStatus.PROCESSING)
+            if aid == application_id
+            and s.status in (SegmentStatus.ACTIVE, SegmentStatus.PROCESSING)
         ]
         return active[0] if active else None
 
@@ -312,7 +303,6 @@ def build_event_facade(
     from onboarding.services.command_service import OnboardingCommandService
     from onboarding.services.facade import OnboardingFacade
     from onboarding.services.query_service import OnboardingQueryService
-    from onboarding.domain.events.envelope import EventEnvelope
 
     repo = FakeRepository()
     segments = FakeSegmentRepository()
@@ -333,9 +323,7 @@ def build_event_facade(
         for app_id in abandoned:
             await resume.revoke_for_application(app_id)
 
-    coordinator = FlowCoordinatorHandler(
-        repo, segments, engine, orchestrators, publisher, resume
-    )
+    coordinator = FlowCoordinatorHandler(repo, segments, engine, orchestrators, publisher, resume)
     integration = IntegrationHandler(repo, gateway, publisher)
     trace = TraceProjectionHandler(events)
     decision = DecisionHandler(repo, decision_engine, publisher, resume)

@@ -1,13 +1,9 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
-from onboarding.audit.redaction import hash_payload
 from onboarding.domain.events.catalog import EventType, routing_key_for
 from onboarding.domain.events.envelope import DomainEvent, EventEnvelope
 from onboarding.domain.models import FlowStep
 from onboarding.events.outbox.publisher import OutboxPublisher
-from onboarding.integrations.gateway import INTEGRATION_MAP
 from onboarding.interfaces.integrations import IIntegrationGateway
 from onboarding.interfaces.persistence import IApplicationRepository
 

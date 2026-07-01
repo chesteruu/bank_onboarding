@@ -1,6 +1,11 @@
 from __future__ import annotations
 
-from onboarding.domain.events.segment import AggregateProgress, FlowSegment, SegmentProgress, SegmentStatus
+from onboarding.domain.events.segment import (
+    AggregateProgress,
+    FlowSegment,
+    SegmentProgress,
+    SegmentStatus,
+)
 from onboarding.domain.models import Application, FlowDefinition
 
 
@@ -19,12 +24,27 @@ def compute_aggregate_progress(
 
     completed_before = idx
     active = next(
-        (s for s in segments if s.segment_key == current_key and s.status in (SegmentStatus.ACTIVE, SegmentStatus.PROCESSING)),
+        (
+            s
+            for s in segments
+            if s.segment_key == current_key
+            and s.status in (SegmentStatus.ACTIVE, SegmentStatus.PROCESSING)
+        ),
         None,
     )
-    segment_partial = (active.percent / 100.0) if active else (1.0 if segments and any(
-        s.segment_key == current_key and s.status == SegmentStatus.COMPLETED for s in segments
-    ) else 0.0)
+    segment_partial = (
+        (active.percent / 100.0)
+        if active
+        else (
+            1.0
+            if segments
+            and any(
+                s.segment_key == current_key and s.status == SegmentStatus.COMPLETED
+                for s in segments
+            )
+            else 0.0
+        )
+    )
 
     main_percent = int(((completed_before + segment_partial) / total) * 100)
     main_percent = min(100, max(0, main_percent))

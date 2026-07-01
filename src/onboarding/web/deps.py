@@ -141,7 +141,9 @@ async def get_onboarding_service(
             available_flows=settings.available_flows,
         )
         command = OnboardingCommandService(
-            repo, flow_engine, OutboxPublisher(PostgresOutboxRepository(session), InProcessEventBus()),
+            repo,
+            flow_engine,
+            OutboxPublisher(PostgresOutboxRepository(session), InProcessEventBus()),
             resume_tokens,
             settings.available_flows,
             legacy_abandon=legacy._abandon_device_drafts,

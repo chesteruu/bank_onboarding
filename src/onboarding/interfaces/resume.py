@@ -7,9 +7,7 @@ from onboarding.domain.models import ResumeTokenData
 class IResumeTokenService(Protocol):
     """Creates and validates time-limited resume tokens."""
 
-    async def create_token(
-        self, application_id: UUID, resumption_data: ResumeTokenData
-    ) -> str: ...
+    async def create_token(self, application_id: UUID, resumption_data: ResumeTokenData) -> str: ...
 
     async def validate_token(self, token: str) -> ResumeTokenData | None: ...
 

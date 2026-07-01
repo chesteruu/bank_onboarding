@@ -11,7 +11,15 @@ from onboarding.flow.provider import YamlFlowDefinitionProvider
         (
             Country.SE,
             AccountType.PRIVATE,
-            ["identity", "contact", "consent", "financial", "credit_decision", "review", "decision"],
+            [
+                "identity",
+                "contact",
+                "consent",
+                "financial",
+                "credit_decision",
+                "review",
+                "decision",
+            ],
         ),
         (
             Country.SE,
@@ -30,12 +38,28 @@ from onboarding.flow.provider import YamlFlowDefinitionProvider
         (
             Country.ES,
             AccountType.PRIVATE,
-            ["identity", "contact", "consent", "financial", "credit_decision", "review", "decision"],
+            [
+                "identity",
+                "contact",
+                "consent",
+                "financial",
+                "credit_decision",
+                "review",
+                "decision",
+            ],
         ),
         (
             Country.PL,
             AccountType.PRIVATE,
-            ["identity", "contact", "consent", "financial", "credit_decision", "review", "decision"],
+            [
+                "identity",
+                "contact",
+                "consent",
+                "financial",
+                "credit_decision",
+                "review",
+                "decision",
+            ],
         ),
     ],
 )

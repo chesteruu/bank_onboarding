@@ -1,9 +1,10 @@
+from uuid import uuid4
+
 import pytest
 
 from onboarding.domain.events.catalog import EventType
 from onboarding.domain.events.envelope import DomainEvent, EventEnvelope
 from onboarding.events.bus.in_process import InProcessEventBus
-from uuid import uuid4
 
 
 @pytest.mark.asyncio

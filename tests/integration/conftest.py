@@ -2,8 +2,6 @@ import os
 
 import pytest
 from fakes import build_event_facade
-
-from onboarding.config import get_settings
 from integration.postgres_helpers import (
     admin_database_url,
     create_session_factory,
@@ -13,6 +11,8 @@ from integration.postgres_helpers import (
     run_migrations,
     truncate_all_tables_sync,
 )
+
+from onboarding.config import get_settings
 
 
 @pytest.fixture
@@ -35,9 +35,7 @@ def postgres_ready(test_database_url: str) -> str:
         "postgresql://", "postgresql+asyncpg://"
     )
     if not asyncio.run(postgres_is_reachable(admin_async)):
-        pytest.skip(
-            "Postgres is not running. Start it with: docker compose up -d postgres"
-        )
+        pytest.skip("Postgres is not running. Start it with: docker compose up -d postgres")
 
     asyncio.run(ensure_test_database(test_database_url))
     run_migrations(test_database_url)
@@ -70,10 +68,10 @@ def pg_http_client(postgres_ready: str):
     import asyncio
 
     from fastapi.testclient import TestClient
+    from integration.postgres_helpers import db_session_override
 
     from main import create_app
     from onboarding.persistence.database import get_db_session
-    from integration.postgres_helpers import db_session_override
 
     truncate_all_tables_sync(postgres_ready)
     engine, factory = create_session_factory(postgres_ready)

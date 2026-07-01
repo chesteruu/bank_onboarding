@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID
 
-from onboarding.domain.enums import DecisionOutcome
 from onboarding.domain.models import Application, DecisionResult, IntegrationResult
 from onboarding.services.command_service import OnboardingCommandService
 from onboarding.services.onboarding import OnboardingService

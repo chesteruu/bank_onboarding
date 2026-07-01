@@ -4,7 +4,7 @@ import fnmatch
 from collections import defaultdict
 
 from onboarding.domain.events.envelope import DomainEvent
-from onboarding.interfaces.event_bus import EventHandler, IEventBus
+from onboarding.interfaces.event_bus import EventHandler
 
 
 class InProcessEventBus:

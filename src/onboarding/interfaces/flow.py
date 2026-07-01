@@ -1,5 +1,4 @@
 from typing import Any, Protocol
-from uuid import UUID
 
 from onboarding.domain.enums import AccountType, Country
 from onboarding.domain.models import Application, FlowDefinition, ProgressInfo
@@ -14,6 +13,8 @@ class IFlowDefinitionProvider(Protocol):
 class IFlowEngine(Protocol):
     def get_flow(self, application: Application) -> FlowDefinition: ...
 
+    def get_flow_for(self, country: str, account_type: str) -> FlowDefinition: ...
+
     def get_current_step(self, application: Application) -> str: ...
 
     def validate_transition(
@@ -22,6 +23,4 @@ class IFlowEngine(Protocol):
 
     def get_progress(self, application: Application) -> ProgressInfo: ...
 
-    def get_step_context(
-        self, application: Application, step_key: str
-    ) -> dict[str, Any]: ...
+    def get_step_context(self, application: Application, step_key: str) -> dict[str, Any]: ...

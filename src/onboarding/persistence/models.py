@@ -23,9 +23,7 @@ class OnboardingApplicationORM(Base):
     final_decision: Mapped[str | None] = mapped_column(String(32), nullable=True)
     device_id: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)
     identifier_hash: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
@@ -81,9 +79,7 @@ class AuditEventORM(Base):
     event_type: Mapped[str] = mapped_column(String(64))
     actor: Mapped[str] = mapped_column(String(64), default="system")
     metadata_json: Mapped[dict] = mapped_column(JSONB, default=dict)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     application: Mapped[OnboardingApplicationORM] = relationship(back_populates="audit_events")
 
@@ -113,9 +109,7 @@ class FlowTraceORM(Base):
     event_type: Mapped[str] = mapped_column(String(64))
     actor: Mapped[str] = mapped_column(String(64), default="system")
     metadata_json: Mapped[dict] = mapped_column(JSONB, default=dict)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class IntegrationTraceORM(Base):
@@ -128,9 +122,7 @@ class IntegrationTraceORM(Base):
     event_type: Mapped[str] = mapped_column(String(64))
     actor: Mapped[str] = mapped_column(String(64), default="system")
     metadata_json: Mapped[dict] = mapped_column(JSONB, default=dict)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class DecisionTraceORM(Base):
@@ -143,9 +135,7 @@ class DecisionTraceORM(Base):
     event_type: Mapped[str] = mapped_column(String(64))
     actor: Mapped[str] = mapped_column(String(64), default="system")
     metadata_json: Mapped[dict] = mapped_column(JSONB, default=dict)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class EventOutboxORM(Base):
@@ -155,9 +145,7 @@ class EventOutboxORM(Base):
     event_type: Mapped[str] = mapped_column(String(128))
     routing_key: Mapped[str] = mapped_column(String(256))
     payload_json: Mapped[dict] = mapped_column(JSONB, default=dict)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     attempts: Mapped[int] = mapped_column(default=0)
 
