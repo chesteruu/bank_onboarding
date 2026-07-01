@@ -51,46 +51,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          enable-cache: true
-
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
 
-      - name: Pull Vercel environment
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-          else
-            vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-          fi
-
-      - name: Build
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            vercel build --yes --token=${{ secrets.VERCEL_TOKEN }}
-          else
-            vercel build --yes --prod --token=${{ secrets.VERCEL_TOKEN }}
-          fi
-
-      - name: Deploy
+      - name: Deploy to Vercel
         id: deploy
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            url=$(vercel deploy --prebuilt --yes --token=${{ secrets.VERCEL_TOKEN }})
+            url=$(vercel deploy --yes --token=${{ secrets.VERCEL_TOKEN }})
           else
-            url=$(vercel deploy --prebuilt --yes --prod --token=${{ secrets.VERCEL_TOKEN }})
+            url=$(vercel deploy --yes --prod --token=${{ secrets.VERCEL_TOKEN }})
           fi
           echo "url=$url" >> "$GITHUB_OUTPUT"
           echo "Deployed to $url"
