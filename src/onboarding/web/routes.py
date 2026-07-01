@@ -277,7 +277,7 @@ async def processing_page(
     request: Request,
     application_id: UUID,
     service: Annotated[OnboardingFacade, Depends(get_onboarding_service)],
-) -> HTMLResponse | RedirectResponse:
+) -> Response:
     app = await service.get_application(application_id)
     if app is None:
         return RedirectResponse(url="/", status_code=303)
@@ -316,7 +316,7 @@ async def submit_step(
     application_id: UUID,
     step_key: str,
     service: Annotated[OnboardingFacade, Depends(get_onboarding_service)],
-) -> HTMLResponse | RedirectResponse:
+) -> Response:
     form = await request.form()
     data: dict[str, Any] = {k: v for k, v in form.items() if k not in ("confirm", "consent_terms")}
     if "confirm" in form:
