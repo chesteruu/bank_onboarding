@@ -1,3 +1,5 @@
-from main import app
+"""Vercel serverless entrypoint — re-exports the FastAPI app from main."""
 
-__all__ = ["app"]
+import main
+
+app = main.app

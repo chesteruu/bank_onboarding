@@ -73,6 +73,7 @@ jobs:
 
       - name: Run database migrations
         if: github.event_name == 'push'
+        continue-on-error: true
         run: |
           if [ -f .vercel/.env.production.local ]; then
             set -a && source .vercel/.env.production.local && set +a

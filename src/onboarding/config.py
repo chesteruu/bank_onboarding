@@ -32,6 +32,16 @@ def normalize_asyncpg_url(url: str) -> str:
     return url
 
 
+def ensure_ssl_query_param(url: str) -> str:
+    """Neon requires TLS; Alembic uses the sync psycopg driver."""
+    if any(host in url for host in ("localhost", "127.0.0.1", "@postgres:")):
+        return url
+    if "sslmode=" in url:
+        return url
+    separator = "&" if "?" in url else "?"
+    return f"{url}{separator}sslmode=require"
+
+
 def migration_database_url() -> str:
     """Direct (non-pooled) URL for Alembic migrations — required by Neon."""
     for key in (
@@ -41,9 +51,10 @@ def migration_database_url() -> str:
     ):
         value = os.environ.get(key)
         if value:
-            return normalize_asyncpg_url(value).replace("+asyncpg", "")
+            url = normalize_asyncpg_url(value).replace("+asyncpg", "")
+            return ensure_ssl_query_param(url)
     settings = get_settings()
-    return settings.sync_database_url
+    return ensure_ssl_query_param(settings.sync_database_url)
 
 
 PROJECT_ROOT = _resolve_project_root()
