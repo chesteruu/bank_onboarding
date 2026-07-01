@@ -40,14 +40,14 @@ class OnboardingCommandService:
         publisher: OutboxPublisher,
         resume_tokens: IResumeTokenService | None = None,
         available_flows: dict[str, list[str]] | None = None,
-        legacy_abandon: Any | None = None,
+        abandon_prior_drafts: Any | None = None,
     ) -> None:
         self._repo = repo
         self._flow = flow_engine
         self._publisher = publisher
         self._resume_tokens = resume_tokens
         self._available_flows = available_flows or get_locale_provider().available_flows()
-        self._legacy_abandon = legacy_abandon
+        self._abandon_prior_drafts = abandon_prior_drafts
 
     def allowed_countries(self, account_type: str) -> list[str]:
         return list(self._available_flows.get(account_type, []))
@@ -59,8 +59,8 @@ class OnboardingCommandService:
         if country not in allowed:
             raise ValueError(f"Country {country} is not available for {account_type} accounts")
         flow = self._flow.get_flow_for(country, account_type)
-        if self._legacy_abandon:
-            await self._legacy_abandon(device_id)
+        if self._abandon_prior_drafts:
+            await self._abandon_prior_drafts(device_id)
         first_step = flow.steps[0].key
         request_id = f"req_{uuid.uuid4().hex[:12]}"
         app = await self._repo.create(
@@ -162,8 +162,8 @@ class OnboardingCommandService:
         )
 
     async def start_over(self, device_id: str) -> None:
-        if self._legacy_abandon:
-            await self._legacy_abandon(device_id)
+        if self._abandon_prior_drafts:
+            await self._abandon_prior_drafts(device_id)
 
     async def go_back(self, application_id: UUID, step_key: str) -> str:
         """Move the application pointer back one step and sync resume data.

@@ -5,6 +5,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from onboarding.domain.answers import merge_step_answers
 from onboarding.domain.enums import (
     AccountType,
     ApplicationStatus,
@@ -171,10 +172,7 @@ class PostgresApplicationRepository:
 
     async def get_aggregated_answers(self, application_id: UUID) -> dict[str, Any]:
         submissions = await self.get_step_submissions(application_id)
-        aggregated: dict[str, Any] = {}
-        for sub in submissions:
-            aggregated.update(sub.answers)
-        return aggregated
+        return merge_step_answers((s.step_key, s.answers) for s in submissions)
 
     async def get_latest_by_device(
         self, device_id: str, status: ApplicationStatus | None = None

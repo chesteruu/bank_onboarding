@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta, timezone
-from typing import Any
 from uuid import UUID, uuid4
 
 from onboarding.domain.enums import ApplicationStatus, CheckOutcome, IntegrationCheckType
@@ -95,11 +94,11 @@ class FakeRepository:
         return [r for r in self.integrations if r.application_id == application_id]
 
     async def get_aggregated_answers(self, application_id):
-        agg: dict[str, Any] = {}
-        for s in self.submissions:
-            if s.application_id == application_id:
-                agg.update(s.answers)
-        return agg
+        from onboarding.domain.answers import merge_step_answers
+
+        return merge_step_answers(
+            (s.step_key, s.answers) for s in self.submissions if s.application_id == application_id
+        )
 
     async def get_latest_by_device(self, device_id, status=None):
         apps = [a for a in self.applications.values() if a.device_id == device_id]
@@ -338,7 +337,7 @@ def build_event_facade(
     )
     flows = available_flows or get_locale_provider().available_flows()
     command = OnboardingCommandService(
-        repo, engine, publisher, resume, flows, legacy_abandon=abandon
+        repo, engine, publisher, resume, flows, abandon_prior_drafts=abandon
     )
     query = OnboardingQueryService(repo, segments, engine, events, resume)
     facade = OnboardingFacade(command, query, event_driven=True)

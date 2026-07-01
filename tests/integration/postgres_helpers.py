@@ -168,7 +168,11 @@ async def build_postgres_facade(
     repo = PostgresApplicationRepository(session)
     segments = PostgresSegmentRepository(session)
     event_router = TraceTableRouter(session)
-    resume_tokens = PostgresResumeTokenService(session)
+    resume_tokens = PostgresResumeTokenService(
+        session,
+        secret=settings.resume_token_secret,
+        ttl_hours=settings.resume_token_ttl_hours,
+    )
 
     outbox = PostgresOutboxRepository(session)
     bus = InProcessEventBus()
@@ -202,7 +206,7 @@ async def build_postgres_facade(
         publisher,
         resume_tokens,
         settings.available_flows,
-        legacy_abandon=abandon,
+        abandon_prior_drafts=abandon,
     )
     query = OnboardingQueryService(repo, segments, flow_engine, event_router, resume_tokens)
     facade = OnboardingFacade(command, query, event_driven=True)

@@ -25,7 +25,6 @@ from onboarding.persistence.repository import PostgresApplicationRepository
 from onboarding.persistence.segment_repository import PostgresSegmentRepository
 from onboarding.services.command_service import OnboardingCommandService
 from onboarding.services.facade import OnboardingFacade
-from onboarding.services.onboarding import OnboardingService
 from onboarding.services.query_service import OnboardingQueryService
 from onboarding.services.resume_service import PostgresResumeTokenService
 
@@ -92,7 +91,12 @@ async def get_event_router(
 async def get_resume_token_service(
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> PostgresResumeTokenService:
-    return PostgresResumeTokenService(session)
+    settings = get_settings()
+    return PostgresResumeTokenService(
+        session,
+        secret=settings.resume_token_secret,
+        ttl_hours=settings.resume_token_ttl_hours,
+    )
 
 
 def _build_event_bus(
@@ -141,26 +145,6 @@ async def get_onboarding_service(
     settings = get_settings()
     query = OnboardingQueryService(repo, segments, flow_engine, event_router, resume_tokens)
 
-    if not settings.event_driven_enabled:
-        legacy = OnboardingService(
-            repo,
-            flow_engine,
-            gateway,
-            decision_engine,
-            event_router,
-            resume_token_service=resume_tokens,
-            available_flows=settings.available_flows,
-        )
-        command = OnboardingCommandService(
-            repo,
-            flow_engine,
-            OutboxPublisher(PostgresOutboxRepository(session), InProcessEventBus()),
-            resume_tokens,
-            settings.available_flows,
-            legacy_abandon=legacy._abandon_device_drafts,
-        )
-        return OnboardingFacade(command, query, legacy=legacy, event_driven=False)
-
     _, publisher = _build_event_bus(
         session, repo, segments, flow_engine, gateway, decision_engine, event_router, resume_tokens
     )
@@ -176,6 +160,6 @@ async def get_onboarding_service(
         publisher,
         resume_tokens,
         settings.available_flows,
-        legacy_abandon=abandon,
+        abandon_prior_drafts=abandon,
     )
     return OnboardingFacade(command, query, event_driven=True)

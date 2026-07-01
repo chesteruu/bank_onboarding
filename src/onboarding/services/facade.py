@@ -5,24 +5,21 @@ from uuid import UUID
 
 from onboarding.domain.models import Application, DecisionResult, IntegrationResult
 from onboarding.services.command_service import OnboardingCommandService
-from onboarding.services.onboarding import OnboardingService
 from onboarding.services.query_service import OnboardingQueryService
 
 
 class OnboardingFacade:
-    """Unified API: event-driven command/query or legacy sync orchestrator."""
+    """Unified read/write API over the event-driven command and query services."""
 
     def __init__(
         self,
         command: OnboardingCommandService,
         query: OnboardingQueryService,
-        legacy: OnboardingService | None = None,
         *,
         event_driven: bool = True,
     ) -> None:
         self._command = command
         self._query = query
-        self._legacy = legacy
         self._event_driven = event_driven
 
     def allowed_countries(self, account_type: str) -> list[str]:
@@ -31,10 +28,7 @@ class OnboardingFacade:
     async def start_application(
         self, country: str, account_type: str, device_id: str | None = None
     ) -> Application:
-        if self._event_driven:
-            return await self._command.start_application(country, account_type, device_id)
-        assert self._legacy is not None
-        return await self._legacy.start_application(country, account_type, device_id)
+        return await self._command.start_application(country, account_type, device_id)
 
     async def get_application(self, application_id: UUID) -> Application | None:
         return await self._query.get_application(application_id)
@@ -49,10 +43,7 @@ class OnboardingFacade:
         return await self._query.get_resume_link(application_id, base_url)
 
     async def start_over(self, device_id: str) -> None:
-        if self._event_driven:
-            await self._command.start_over(device_id)
-        elif self._legacy:
-            await self._legacy.start_over(device_id)
+        await self._command.start_over(device_id)
 
     async def go_back(self, application_id: UUID, step_key: str) -> str:
         return await self._command.go_back(application_id, step_key)
@@ -73,24 +64,16 @@ class OnboardingFacade:
         *,
         allow_duplicate: bool = False,
     ) -> tuple[Application, list[IntegrationResult]]:
-        if self._event_driven:
-            app = await self._command.submit_step(
-                application_id, step_key, answers, allow_duplicate=allow_duplicate
-            )
-            return app, []
-        assert self._legacy is not None
-        return await self._legacy.submit_step(
+        app = await self._command.submit_step(
             application_id, step_key, answers, allow_duplicate=allow_duplicate
         )
+        return app, []
 
     async def finalize_application(self, application_id: UUID) -> DecisionResult:
-        if self._event_driven:
-            await self._command.finalize_application(application_id)
-            app = await self._query.get_application(application_id)
-            assert app is not None and app.final_decision is not None
-            return DecisionResult(outcome=app.final_decision, reasons=[])
-        assert self._legacy is not None
-        return await self._legacy.finalize_application(application_id)
+        await self._command.finalize_application(application_id)
+        app = await self._query.get_application(application_id)
+        assert app is not None and app.final_decision is not None
+        return DecisionResult(outcome=app.final_decision, reasons=[])
 
     async def get_review_data(self, application_id: UUID) -> dict[str, Any]:
         return await self._query.get_review_data(application_id)

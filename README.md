@@ -110,10 +110,11 @@ Other settings live in `src/onboarding/config.py` (`Settings`):
 
 | Setting | Default | Purpose |
 |---------|---------|---------|
-| `event_driven_enabled` | `true` | Event bus + outbox path (recommended) |
 | `available_flows` | from `i18n/markets.yaml` | Enabled countries per account type |
 | `device_cookie_name` | `onboarding_device_id` | Resume cookie |
 | `device_cookie_max_age_days` | `90` | Cookie TTL |
+| `resume_token_secret` | dev placeholder | HMAC key for resume tokens (set in prod) |
+| `resume_token_ttl_hours` | `24` | Resume token lifetime |
 
 ## Shell flows (current)
 

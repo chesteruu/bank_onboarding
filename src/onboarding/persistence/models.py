@@ -94,6 +94,7 @@ class ResumeTokenORM(Base):
         PGUUID(as_uuid=True), ForeignKey("onboarding_applications.id"), index=True
     )
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    token_salt: Mapped[str | None] = mapped_column(String(32), nullable=True)
     resumption_data_json: Mapped[dict] = mapped_column(JSONB, default=dict)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

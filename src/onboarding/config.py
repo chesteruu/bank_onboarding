@@ -90,7 +90,8 @@ class Settings(BaseSettings):
     i18n_dir: Path = I18N_DIR
     device_cookie_name: str = "onboarding_device_id"
     device_cookie_max_age_days: int = 90
-    event_driven_enabled: bool = True
+    resume_token_secret: str = "dev-insecure-resume-secret-change-me"
+    resume_token_ttl_hours: int = 24
     integration_timeout_seconds: float = 5.0
     integration_max_attempts: int = 3
     integration_retry_backoff_seconds: float = 0.25

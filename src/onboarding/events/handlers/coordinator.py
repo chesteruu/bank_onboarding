@@ -20,6 +20,21 @@ from onboarding.interfaces.resume import IResumeTokenService
 from onboarding.interfaces.segment_repository import ISegmentRepository
 
 
+def _pointer_reached(flow, current_key: str | None, target_key: str | None) -> bool:
+    """True if the shell pointer is already at ``target_key`` or beyond.
+
+    Used to make shell advancement idempotent under at-least-once event
+    delivery. Unknown keys are treated as "not reached" so we fail open and
+    still advance rather than silently stalling the flow.
+    """
+    if target_key is None or current_key is None:
+        return False
+    keys = flow.step_keys()
+    if current_key not in keys or target_key not in keys:
+        return False
+    return bool(keys.index(current_key) >= keys.index(target_key))
+
+
 class FlowCoordinatorHandler:
     """Owns shell step pointer and syncs sub-flow segments to main progress."""
 
@@ -263,6 +278,14 @@ class FlowCoordinatorHandler:
     async def _advance_shell(self, app, flow, step_key: str) -> None:
         step = flow.get_step(step_key)
         next_key = flow.next_step_key(step_key) if step else None
+
+        # Optimistic guard: advancing from step_key is idempotent. If a
+        # redelivered or racing completion already moved the pointer to next_key
+        # (or beyond), skip so the shell advances exactly once.
+        current = await self._repo.get(app.id)
+        if current is not None and _pointer_reached(flow, current.current_step_key, next_key):
+            return
+
         if next_key:
             app = await self._repo.update_status(
                 app.id, ApplicationStatus.DRAFT, current_step_key=next_key

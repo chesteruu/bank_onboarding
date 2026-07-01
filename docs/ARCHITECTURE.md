@@ -430,7 +430,7 @@ main_percent = (completed_shell_steps / total_shell_steps) * 100
 | `integrations/` | Gateway + mock clients |
 | `decision/` | Rules engine + YAML rules |
 | `persistence/` | ORM, repos, segments, outbox |
-| `services/` | Command, query, facade (+ legacy `OnboardingService`) |
+| `services/` | Command, query, facade |
 | `web/` | Routes, forms, templates, DI |
 
 ## Persistence
@@ -465,12 +465,19 @@ In-process bus completes synchronously on submit; `/processing` mainly matters w
 
 Tests: `build_event_facade()` (in-memory) or `build_postgres_facade()` (Postgres e2e).
 
-## Feature flag
+## Idempotency & exactly-once processing
 
-`Settings.event_driven_enabled` (default `true`):
+At-least-once event delivery is assumed. Duplicate work is prevented at three points:
 
-- **true** — Command/query facade, outbox, coordinator (recommended)
-- **false** — Legacy sync `OnboardingService` (deprecated; shell YAML is component-oriented)
+- **Event consumption** — `InProcessEventBus` dedupes by envelope `event_id`, so a
+  redelivered event is dispatched at most once. A broker consumer would back this
+  with a persistent dedup store instead of the in-memory LRU.
+- **Shell advancement** — `FlowCoordinatorHandler._advance_shell` re-reads the
+  pointer and skips if it already reached the target step, so a racing/duplicate
+  `SUB_FLOW_COMPLETED` cannot double-advance.
+- **Integration checks** — `MockIntegrationGateway` reuses a prior result keyed by
+  `(check_type, request_payload_hash)`, so unchanged resubmits (e.g. after resume)
+  do not re-run expensive/sensitive checks.
 
 ## Tradeoffs
 
@@ -481,10 +488,14 @@ Tests: `build_event_facade()` (in-memory) or `build_postgres_facade()` (Postgres
 | Postgres read models | Simpler than full event sourcing |
 | Monorepo handlers | Extract to Lambdas / consumer groups later |
 | Generic YamlComponentOrchestrator | One implementation; YAML drives behaviour |
+| Single event-driven path | Legacy sync orchestrator removed to avoid dual maintenance |
 
 ## Security (demo)
 
 - No auth, no rate limits
-- Resume tokens: UUID + TTL (production: HMAC / hash at rest)
+- Resume tokens: HMAC(secret, `app_id:salt`), **hashed at rest** (only the SHA-256
+  hash + salt are stored); TTL-bound and single-use. Rotate `RESUME_TOKEN_SECRET`
+  to invalidate all outstanding tokens.
 - Device cookie: HttpOnly, SameSite=Lax
-- PII redacted in trace metadata
+- PII redacted in trace metadata; answers namespaced per step so colliding fields
+  are never silently overwritten

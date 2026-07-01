@@ -25,8 +25,8 @@ You are editing an **event-driven**, **two-level YAML** onboarding system. Follo
    - Do not create new orchestrator Python classes unless YAML cannot express the behaviour.
    - New orchestrator **ids** must be registered in `src/onboarding/flow/orchestrators/registry.py` `register_defaults()`.
 
-4. **Event-driven path is default**
-   - `Settings.event_driven_enabled = True`. Do not reintroduce synchronous integration calls in routes.
+4. **Event-driven path is the only path**
+   - Commands go through the outbox + coordinator. Do not reintroduce synchronous integration calls in routes or a parallel sync orchestrator.
 
 5. **Integration keys are closed set**
    - Only use keys from `INTEGRATION_MAP` in `src/onboarding/integrations/gateway.py`.
@@ -34,7 +34,7 @@ You are editing an **event-driven**, **two-level YAML** onboarding system. Follo
 
 6. **Do not edit**
    - Plan files in `.cursor/plans/`
-   - Unrelated refactors, formatting sweeps, or legacy `OnboardingService` unless explicitly requested
+   - Unrelated refactors or formatting sweeps unless explicitly requested
 
 ## Before you change anything
 
