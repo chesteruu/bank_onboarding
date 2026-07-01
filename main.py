@@ -19,7 +19,7 @@ async def lifespan(app: FastAPI):
 
 def create_app() -> FastAPI:
     settings = get_settings()
-    app = FastAPI(title="Ikano Onboarding", lifespan=lifespan)
+    app = FastAPI(title="Banko Onboarding", lifespan=lifespan)
     app.include_router(router)
     app.include_router(admin_router)
 

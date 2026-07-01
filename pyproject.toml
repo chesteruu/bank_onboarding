@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "ikano-onboarding"
+name = "banko-onboarding"
 version = "0.1.0"
-description = "Interface-driven onboarding web app for Ikano take-home task"
+description = "Interface-driven bank onboarding web app"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

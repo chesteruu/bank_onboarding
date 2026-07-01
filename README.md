@@ -1,4 +1,4 @@
-# Ikano Onboarding App
+# Banko Onboarding App
 
 Event-driven, interface-first FastAPI onboarding for **3 countries × 2 account types** (SE / ES / PL × private / business). Each market is composed from a thin **shell flow** plus reusable **component sub-flows** (identity, credit, KYB, …). Commands publish domain events through a Postgres outbox; a coordinator and component orchestrators advance progress and persist segment state.
 
