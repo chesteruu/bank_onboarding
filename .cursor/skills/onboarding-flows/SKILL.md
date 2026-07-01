@@ -218,3 +218,5 @@ Templates use `{{ t('key.path') }}`. Do not hardcode applicant-facing strings in
 | Forms | `src/onboarding/web/forms.py` |
 | Market i18n | `i18n/markets.yaml`, `i18n/bundles/` |
 | Full human guide | `docs/FLOWS_GUIDE.md` |
+| Architecture + swimlanes | `docs/ARCHITECTURE.md` |
+| AWS migration | `docs/AWS_MIGRATION.md` |

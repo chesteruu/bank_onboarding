@@ -6,7 +6,8 @@ Event-driven, interface-first FastAPI onboarding for **3 countries × 2 account 
 
 | Document | Contents |
 |----------|----------|
-| [Architecture](docs/ARCHITECTURE.md) | Event bus, coordinator model, persistence, Mermaid diagrams |
+| [Architecture](docs/ARCHITECTURE.md) | Event bus, coordinator model, **swimlane diagrams**, persistence |
+| [AWS migration](docs/AWS_MIGRATION.md) | **AWS-native target**, outbox relay, **on-demand scaling** |
 | [Flows guide](docs/FLOWS_GUIDE.md) | **How to add a country, shell flow, or component sub-flow** |
 | [Agent skill](.cursor/skills/onboarding-flows/SKILL.md) | LLM rulebook — safe patterns for YAML / flow changes |
 

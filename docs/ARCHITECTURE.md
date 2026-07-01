@@ -2,6 +2,242 @@
 
 Event-driven onboarding with a **bus-agnostic core**, **transactional outbox**, and a **two-level flow model** (shell + components). The web layer never orchestrates directly — it publishes commands and reads projections.
 
+## Swimlane diagrams
+
+These diagrams show **who does what** across lanes. They complement the component map below and match the current in-process bus + Postgres outbox implementation (handlers are unchanged when the bus becomes AWS-native — see [AWS migration](AWS_MIGRATION.md)).
+
+### 1. Start application (landing → first step)
+
+```mermaid
+sequenceDiagram
+    box Applicant
+        participant Browser
+    end
+    box Web
+        participant Routes
+        participant Facade
+    end
+    box Commands
+        participant Cmd as CommandService
+    end
+    box Persistence
+        participant DB as Postgres
+        participant Resume as ResumeTokens
+    end
+
+    Browser->>Routes: GET /
+    Routes->>Facade: resume_by_device(cookie)
+    Facade->>DB: latest draft by device_id
+    alt Draft exists
+        DB-->>Routes: application
+        Routes-->>Browser: resume_prompt.html
+    else No draft
+        Routes-->>Browser: landing.html
+        Browser->>Routes: POST select-type
+        Routes-->>Browser: select_country.html
+        Browser->>Routes: POST /onboarding/start
+        Routes->>Facade: start_application(country, type, device_id)
+        Facade->>Cmd: start_application
+        Cmd->>DB: abandon prior device drafts
+        Cmd->>DB: create application + first step
+        Cmd->>Resume: create_token(resumption_data)
+        Cmd->>DB: outbox APPLICATION_STARTED
+        Routes-->>Browser: 303 → step/identity
+    end
+```
+
+### 2. Step submit → integration → shell advance (core loop)
+
+Only **FlowCoordinatorHandler** writes `current_step_key`. Component orchestrators update **flow_segments** only.
+
+```mermaid
+sequenceDiagram
+    box Applicant
+        participant Browser
+    end
+    box Web
+        participant Routes
+        participant Facade
+    end
+    box Commands
+        participant Cmd as CommandService
+    end
+    box Outbox
+        participant Outbox
+        participant Bus as InProcessEventBus
+    end
+    box Coordinator
+        participant Coord as FlowCoordinator
+        participant Orch as YamlComponentOrchestrator
+    end
+    box Workers
+        participant IntH as IntegrationHandler
+        participant Trace as TraceProjection
+    end
+    box Persistence
+        participant DB as Postgres
+    end
+    box External
+        participant GW as IntegrationGateway
+    end
+
+    Browser->>Routes: POST step/{key}
+    Routes->>Facade: submit_step
+    Facade->>Cmd: submit_step
+    Cmd->>DB: save step_submission
+    Cmd->>Outbox: enqueue STEP_SUBMITTED
+    Outbox->>Bus: flush
+    Bus->>Coord: handle
+    Bus->>Trace: handle
+    Coord->>Orch: on_step_submitted / on_subflow_started
+    Orch->>DB: upsert flow_segment
+    Orch-->>Coord: pending_integrations
+    Coord->>Outbox: INTEGRATION_REQUESTED
+    Outbox->>Bus: flush
+    Bus->>IntH: handle
+    IntH->>GW: run_checks
+    GW-->>IntH: IntegrationResult
+    IntH->>DB: save integration_result
+    IntH->>Outbox: INTEGRATION_COMPLETED
+    Outbox->>Bus: flush
+    Bus->>Coord: handle
+    Coord->>Orch: on_integration_completed
+    Orch-->>Coord: subflow completed
+    Coord->>Outbox: SUB_FLOW_COMPLETED
+    Outbox->>Bus: flush
+    Bus->>Coord: advance shell
+    Coord->>DB: update current_step_key
+    Coord->>DB: sync resume token
+    Routes-->>Browser: 303 → next step or /processing
+```
+
+### 3. Async UX while segment work runs
+
+Today the in-process bus usually finishes before redirect. With a real broker (or slow integrations), the applicant waits on `/processing` while projections catch up.
+
+```mermaid
+sequenceDiagram
+    box Applicant
+        participant Browser
+    end
+    box Web
+        participant Routes
+        participant Facade
+    end
+    box Query
+        participant Qry as QueryService
+    end
+    box Persistence
+        participant DB as Postgres
+    end
+
+    Browser->>Routes: GET /processing
+    Routes->>Facade: get_status
+    Facade->>Qry: get_status
+    Qry->>DB: application + flow_segments
+    Qry-->>Browser: processing.html + progress JSON
+
+    loop SSE or poll
+        Browser->>Routes: GET /events (SSE) or /status
+        Routes->>Facade: get_status
+        Facade->>Qry: get_status
+        Qry->>DB: read segments + ready flag
+        Qry-->>Browser: main_progress, active_segment
+    end
+
+    Note over Browser,DB: ready=true → redirect to current_step_key
+```
+
+### 4. Review, decision, and resume token lifecycle
+
+```mermaid
+sequenceDiagram
+    box Applicant
+        participant Browser
+    end
+    box Web
+        participant Routes
+        participant Facade
+    end
+    box Commands
+        participant Cmd as CommandService
+    end
+    box Outbox
+        participant Outbox
+        participant Bus as InProcessEventBus
+    end
+    box Workers
+        participant DecH as DecisionHandler
+        participant Trace as TraceProjection
+    end
+    box Persistence
+        participant DB as Postgres
+        participant Resume as ResumeTokens
+    end
+
+    Browser->>Routes: POST review (confirm)
+    Routes->>Facade: finalize_application
+    Facade->>Cmd: finalize_application
+    Cmd->>Outbox: DECISION_REQUESTED
+    Outbox->>Bus: flush
+    Bus->>DecH: handle
+    DecH->>DB: load integrations + answers
+    DecH->>DecH: RulesDecisionEngine.evaluate
+    DecH->>DB: update status + final_decision
+    DecH->>Resume: revoke_for_application
+    DecH->>Outbox: DECISION_COMPLETED
+    Outbox->>Bus: flush
+    Bus->>Trace: handle
+    Routes-->>Browser: result.html
+```
+
+### 5. Go back one step (resume sync)
+
+```mermaid
+sequenceDiagram
+    box Applicant
+        participant Browser
+    end
+    box Web
+        participant Routes
+        participant Facade
+    end
+    box Commands
+        participant Cmd as CommandService
+    end
+    box Persistence
+        participant DB as Postgres
+        participant Resume as ResumeTokens
+    end
+
+    Browser->>Routes: POST step/{key}/back
+    Routes->>Facade: go_back
+    Facade->>Cmd: go_back
+    alt First shell step
+        Cmd-->>Routes: redirect /select-country
+    else Previous step exists
+        Cmd->>DB: update current_step_key
+        Cmd->>Resume: sync_resumption(new step)
+        Cmd-->>Routes: redirect previous step
+    end
+    Routes-->>Browser: 303
+```
+
+### Swimlane responsibility matrix
+
+| Lane | Owns | Must not |
+|------|------|----------|
+| **Applicant / Browser** | Form input, cookies | Advance steps directly |
+| **Web / Routes** | HTTP, templates, i18n | Call integrations or change `current_step_key` |
+| **CommandService** | Submissions, outbox enqueue, go_back pointer | Render UI |
+| **QueryService** | Read models, status, review data | Mutate aggregate |
+| **Outbox + Bus** | Durable delivery, handler dispatch | Business rules |
+| **FlowCoordinator** | Shell pointer, segment start, integration requests | Shell-level integration calls |
+| **Component orchestrator** | Internal step logic inside a segment | Update shell pointer |
+| **IntegrationHandler** | External checks, `integration_results` | Advance shell |
+| **DecisionHandler** | Final outcome, revoke resume tokens | Change flow YAML |
+| **TraceProjection** | Audit tables | Application state |
+
 ## High-level view
 
 ```mermaid
@@ -156,7 +392,7 @@ Routing keys: `onboarding.{flow_id}.{event}` or `onboarding.component.{orchestra
 | `OutboxPublisher` | Enqueue + flush to bus on submit, `/status`, SSE |
 | `InProcessEventBus` | Dev/test adapter; pattern subscriptions |
 
-Production: replace `InProcessEventBus` with a broker consumer; handlers stay the same.
+Production: replace `InProcessEventBus` with a broker consumer; handlers stay the same. See [AWS migration guide](AWS_MIGRATION.md) for EventBridge + SQS layout and on-demand scaling.
 
 ## Progress model
 
